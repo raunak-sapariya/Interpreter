@@ -192,7 +192,7 @@ def tokenize(file_contents):
                         tokens.append(f"IDENTIFIER {value} null")
                     pointer += 1
                 case "$"|"#"|"@"|"%"|_:
-                    tokens.append(f"[line {line_number}] Error: Unexpected character: {char}",sys.stderr)
+                    tokens.append(f"[line {line_number}] Error: Unexpected character: {char}")
                     lexical_errors = True
                     pointer += 1 
 
