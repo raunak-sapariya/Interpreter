@@ -190,7 +190,8 @@ def tokenize(file_contents):
                         tokens.append(f"IDENTIFIER {value} null")
                     pointer += 1
                 case "$"|"#"|"@"|"%":
-                    tokens.append(f"[line {line_number}] Error: Unexpected character: {char}")
+                    a=(f"[line {line_number}] Error: Unexpected character: {char}")
+                    tokens.append(a)
                     lexical_errors = True
                     pointer += 1 
 
@@ -204,7 +205,7 @@ def tokenize(file_contents):
                 print(token)
                 
     except Exception as e:
-        token.append(f"An unexpected error occurred: {str(e)}")
+        print(f"An unexpected error occurred: {str(e)}")
         exit(1)
 
 if __name__ == "__main__":
