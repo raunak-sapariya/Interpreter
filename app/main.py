@@ -33,8 +33,7 @@ def main():
 # Implementing scanner here
 def token(file_contents):
         try:
-            yield(f"{'\033[94m'}file_contents: {file_contents}"+'\033[0m')
-            yield("\033[0;31m"+f"file_lenght:{len(file_contents)}"+'\033[0m')
+            
 
             line_number = 1
             lexical_errors=False
