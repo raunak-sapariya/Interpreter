@@ -20,7 +20,6 @@ def main():
     print(f"Command: {command}", f"Filename: {filename}", file=sys.stderr)
     
     if command == "tokenize":
-        tokens=[]
         tokenize(file_contents)
         print(f"file_contents: {file_contents}" )
         print(f"file_length: {len(file_contents)}" )
@@ -191,7 +190,7 @@ def tokenize(file_contents):
                         tokens.append(f"IDENTIFIER {value} null")
                     pointer += 1
                 case "$"|"#"|"@"|"%":
-                    tokens.append(f"[line {line_number}] Error: Unexpected character: {char}")
+                    tokens.append(f"[line {line_number}] Error: Unexpected character: '{char}'")
                     lexical_errors = True
                     pointer += 1 
 
