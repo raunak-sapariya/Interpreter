@@ -23,18 +23,20 @@ def main():
     print(f"Command: {command}",f"Filename: {filename}", file=sys.stderr)
     
     if command == "tokenize":
-        for tokenn in token(file_contents):
-            print(tokenn)
+        for token in tokenize(file_contents):
+            print(token)
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         exit(1)
 
 
 # Implementing scanner here
-def token(file_contents):
+def tokenize(file_contents):
         try:
-            
+            print(f"{'\033[94m'}file_contents: {file_contents}"+'\033[0m')
+            print("\033[0;31m"+f"file_lenght:{len(file_contents)}"+'\033[0m')
 
+            token=[]
             line_number = 1
             lexical_errors=False
             pointer = 0
@@ -44,61 +46,61 @@ def token(file_contents):
 
                 match char:
                     case "(":
-                            yield("LEFT_PAREN ( null")
+                            token.append("LEFT_PAREN ( null")
                             pointer += 1
 
                     case ")":
-                            yield("RIGHT_PAREN ) null")
+                            token.append("RIGHT_PAREN ) null")
                             pointer += 1
 
                     case "{":
-                            yield("LEFT_BRACE { null")
+                            token.append("LEFT_BRACE { null")
                             pointer += 1
 
                     case "}":
-                            yield("RIGHT_BRACE } null")
+                            token.append("RIGHT_BRACE } null")
                             pointer += 1
 
                     case",":
-                            yield("COMMA , null")
+                            token.append("COMMA , null")
                             pointer += 1
 
                     case"-":
-                            yield("MINUS - null")
+                            token.append("MINUS - null")
                             pointer += 1
 
                     case"+":
-                            yield("PLUS + null")
+                            token.append("PLUS + null")
                             pointer += 1
 
                     case";":
-                            yield("SEMICOLON ; null")
+                            token.append("SEMICOLON ; null")
                             pointer += 1
 
                     case"*":
-                            yield("STAR * null")
+                            token.append("STAR * null")
                             pointer += 1
 
                     case"=":
                         if  pointer+1 < len(file_contents) and file_contents[pointer+1]=="=":
-                            yield("EQUAL_EQUAL == null")
+                            token.append("EQUAL_EQUAL == null")
                             pointer += 2
 
                         else:
-                            yield("EQUAL = null")
+                            token.append("EQUAL = null")
                             pointer += 1
 
                     case "!":
                         if pointer+1 <len(file_contents) and file_contents[pointer+1]=="=":
-                            yield("BANG_EQUAL != null")
+                            token.append("BANG_EQUAL != null")
                             pointer +=2
                         else :
-                            yield("BANG ! null")
+                            token.append("BANG ! null")
                             pointer +=1
 
                     case "<":
                         if pointer+1 < len(file_contents) and file_contents[pointer+1]=="=":
-                            yield("LESS_EQUAL <= null")
+                            token.append("LESS_EQUAL <= null")
                             pointer +=2
                         #HTML COMMENT <!-- -->
                         elif(pointer+1 <len(file_contents) and (file_contents[pointer+1]=="!" and file_contents[pointer+2:pointer+3]=="-")): 
@@ -112,15 +114,15 @@ def token(file_contents):
                                 lexical_errors = True
                                 pointer += 1
                         else :
-                            yield("LESS < null")
+                            token.append("LESS < null")
                             pointer +=1
 
                     case ">": 
                         if pointer+1 < len(file_contents) and file_contents[pointer+1]=="=":
-                            yield("GREATER_EQUAL >= null")
+                            token.append("GREATER_EQUAL >= null")
                             pointer +=2
                         else :
-                            yield("GREATER > null")
+                            token.append("GREATER > null")
                             pointer +=1
 
                     #COMMENT AND DIVISION // /**/
@@ -136,7 +138,7 @@ def token(file_contents):
                                     pointer +=1 
                                 pointer +=2
                         else:
-                            yield("SLASH / null")
+                            token.append("SLASH / null")
                             pointer += 1
 
                     #<SPACE> <TAB> <NEWLINE>
@@ -156,10 +158,10 @@ def token(file_contents):
                             pointer+= 1
                         if pointer+1 < len(file_contents) and file_contents[pointer+1] == '"':
                             value = file_contents[start+1:pointer+1]
-                            yield(f'STRING "{value}" {value}')
+                            token.append(f'STRING "{value}" {value}')
                             pointer += 2
                         else:
-                            yield(f'[line {line_number}] Error: Unterminated string. " "')
+                            token.append(f'[line {line_number}] Error: Unterminated string. " "')
                             lexical_errors = True
                             pointer += 1
 
@@ -175,9 +177,9 @@ def token(file_contents):
                             if pointer+1 <len(file_contents) and (file_contents[pointer]=="'" and file_contents[pointer+1]=="'" and file_contents[pointer+2]=="'"):
                                 value = file_contents[start+3:pointer]
                                 pointer+=3
-                                yield(f"STRING '{value}' {value}")
+                                token.append(f"STRING '{value}' {value}")
                             else:
-                                yield(f"[line {line_number}] Error: Unterminated MULTI-LINE STRING ''' '''.")
+                                token.append(f"[line {line_number}] Error: Unterminated MULTI-LINE STRING ''' '''.")
                                 lexical_errors = True
                                 pointer += 1
 
@@ -187,10 +189,10 @@ def token(file_contents):
                                     pointer+= 1
                             if pointer+1 < len(file_contents) and file_contents[pointer+1] == "'":
                                     value = file_contents[start+1:pointer+1]
-                                    yield(f"STRING '{value}' {value}")
+                                    token.append(f"STRING '{value}' {value}")
                                     pointer += 2
                             else:
-                                    yield(f"[line {line_number}] Error: Unterminated string.")
+                                    token.append(f"[line {line_number}] Error: Unterminated string.")
                                     lexical_errors = True
                                     pointer += 1
 
@@ -202,11 +204,11 @@ def token(file_contents):
                                         pointer+=1
                                     pointer+=3
                             else:
-                                yield(f"[line {line_number}] Error: Multi-Line Comment.[''' ''']")
+                                token.append(f"[line {line_number}] Error: Multi-Line Comment.[''' ''']")
                                 lexical_errors = True
                                 pointer += 1
                         else:
-                            yield(f"[line {line_number}] Error: Invalid use of single quote.")
+                            token.append(f"[line {line_number}] Error: Invalid use of single quote.")
                             lexical_errors = True
                             pointer += 1
 
@@ -221,10 +223,10 @@ def token(file_contents):
                                 while pointer+1 < len(file_contents) and file_contents[pointer+1] in "0123456789":
                                     pointer += 1
                             value = file_contents[start:pointer+1]
-                            yield(f"NUMBER {value} {float(value)}")
+                            token.append(f"NUMBER {value} {float(value)}")
                             pointer += 1
                         else:
-                            yield("DOT . null")
+                            token.append("DOT . null")
                             pointer += 1
 
                     #IDENTIFIERS AND RESERVED WORD
@@ -235,19 +237,19 @@ def token(file_contents):
                         value = file_contents[start:pointer+1]
                         Identifiers=["and","class","else","false","for","fun","if","nil","or","print","return","super","this","true","var","while"]
                         if value in Identifiers:
-                            yield(f"{value.upper()} {value} null")
+                            token.append(f"{value.upper()} {value} null")
                         else:
-                            yield(f"IDENTIFIER {value} null")
+                            token.append(f"IDENTIFIER {value} null")
                         pointer += 1
 
                     #ERRORS
                     case "$"|"#"|"@"|"%"|_:
-                        yield(f"[line {line_number}] Error: Unexpected character: {char}")
+                        token.append(f"[line {line_number}] Error: Unexpected character: {char}")
                         lexical_errors = True
                         pointer += 1 
 
             #end of file        
-            yield("EOF  null")
+            token.append("EOF  null")
             
             if lexical_errors:
                 exit(65)
@@ -256,7 +258,7 @@ def token(file_contents):
                 exit(0)
                 
         except Exception as e:
-            yield(f"An unexpected error occurred: {str(e)}")
+            token.append(f"An unexpected error occurred: {str(e)}")
             exit(1)
 
 if __name__ == "__main__":
