@@ -20,6 +20,7 @@ def main():
     print(f"Command: {command}", f"Filename: {filename}", file=sys.stderr)
     
     if command == "tokenize":
+        tokens=[]
         tokenize(file_contents)
         print(f"file_contents: {file_contents}" )
         print(f"file_length: {len(file_contents)}" )
@@ -31,8 +32,6 @@ def main():
 
 def tokenize(file_contents):
     try:
-        
-
         tokens = []  
         line_number = 1
         lexical_errors = False
