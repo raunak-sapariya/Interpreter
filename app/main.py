@@ -29,10 +29,10 @@ def main():
 
 def tokenize(file_contents):
     try:
-        print(f"{'\033[94m'}file_contents: {file_contents}" + '\033[0m')
-        print("\033[0;31m" + f"file_length: {len(file_contents)}" + '\033[0m')
+        print(f"file_contents: {file_contents}" )
+        print(f"file_length: {len(file_contents)}" )
 
-        tokens = []  # Changed variable name from token to tokens
+        tokens = []  
         line_number = 1
         lexical_errors = False
         pointer = 0
