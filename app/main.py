@@ -206,7 +206,7 @@ def tokenize(file_contents):
             exit(0)
                 
     except Exception as e:
-        print(f"An unexpected error occurred: {str(e)}", file=sys.stderr)
+        token.append(f"An unexpected error occurred: {str(e)}")
         exit(1)
 
 if __name__ == "__main__":
