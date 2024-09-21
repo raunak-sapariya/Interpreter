@@ -21,6 +21,8 @@ def main():
     
     if command == "tokenize":
         tokenize(file_contents)
+        print(f"file_contents: {file_contents}" )
+        print(f"file_length: {len(file_contents)}" )
     elif command == "parse":
         print("parse")  
     else:
@@ -29,8 +31,7 @@ def main():
 
 def tokenize(file_contents):
     try:
-        print(f"file_contents: {file_contents}" )
-        print(f"file_length: {len(file_contents)}" )
+        
 
         tokens = []  
         line_number = 1
