@@ -20,9 +20,16 @@ def main():
     #print(f"Command: {command}", f"Filename: {filename}", file=sys.stderr)
     
     if command == "tokenize":
-        tokenize(file_contents)
-        print(f"file_contents: {file_contents}" )
-        print(f"file_length: {len(file_contents)}" )
+        tokens, lexical_errors = tokenize(file_contents)
+        for token in tokens:
+            if token.startswith("[line"):
+                print(token, file=sys.stderr)
+            else:
+                print(token)
+        if lexical_errors:
+            exit(65)
+        else:
+            exit(0)
     elif command == "parse":
         print("parse")  
     else:
@@ -197,12 +204,7 @@ def tokenize(file_contents):
 
         tokens.append("EOF  null")
         
-        if lexical_errors:
-            exit(65)
-        else:
-            for token in tokens:
-                print(token)
-            exit(0)
+        return tokens, lexical_errors
 
 if __name__ == "__main__":
     main()
