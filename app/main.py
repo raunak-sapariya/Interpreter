@@ -17,7 +17,7 @@ def main():
         print(f"Error: File '{filename}' not found.", file=sys.stderr)
         exit(1)
 
-    print(f"Command: {command}", f"Filename: {filename}", file=sys.stderr)
+    #print(f"Command: {command}", f"Filename: {filename}", file=sys.stderr)
     
     if command == "tokenize":
         tokenize(file_contents)
