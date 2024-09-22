@@ -101,6 +101,7 @@ def tokenize(file_contents):
                     else:
                         tokens.append("GREATER > null")
                         pointer += 1
+
                 case "/":
                     if pointer + 1 < len(file_contents) and (file_contents[pointer + 1] == "/" or file_contents[pointer + 1] == "*"):
                         if file_contents[pointer + 1] == "/":
@@ -113,11 +114,13 @@ def tokenize(file_contents):
                     else:
                         tokens.append("SLASH / null")
                         pointer += 1
+
                 case " "|"\t":
                     pointer += 1
                 case "\n":
                     pointer += 1
                     line_number += 1
+
                 case '"':
                     start = pointer
                     while pointer + 1 < len(file_contents) and file_contents[pointer + 1] != '"':
@@ -130,6 +133,7 @@ def tokenize(file_contents):
                         tokens.append(f'[line {line_number}] Error: Unterminated string. " "')
                         lexical_errors = True
                         pointer += 1
+                        
                 case "'":
                     start = pointer
                     if pointer + 2 < len(file_contents) and (file_contents[pointer + 1] == "'" and file_contents[pointer + 2] == "'" and file_contents[pointer - 1] == "="):
@@ -195,9 +199,9 @@ def tokenize(file_contents):
                     else:
                         tokens.append(f"IDENTIFIER {value} null")
                     pointer += 1
-                case "$"|"#"|"@"|"%":
+                
+                case "$"|"#"|"@"|"%"|_:
                     error_message=(f"[line {line_number}] Error: Unexpected character: {char}")
-                    # print(error_message, file=sys.stderr)
                     tokens.append(error_message)
                     lexical_errors = True
                     pointer += 1 
