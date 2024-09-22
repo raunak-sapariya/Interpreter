@@ -130,10 +130,11 @@ def tokenize(file_contents):
                         tokens.append(f'STRING "{value}" {value}')
                         pointer += 2
                     else:
-                        tokens.append(f'[line {line_number}] Error: Unterminated string. " "')
+                        error_message=(f'[line {line_number}] Error: Unterminated string. " "')
+                        tokens.append(error_message)
                         lexical_errors = True
                         pointer += 1
-                        
+
                 case "'":
                     start = pointer
                     if pointer + 2 < len(file_contents) and (file_contents[pointer + 1] == "'" and file_contents[pointer + 2] == "'" and file_contents[pointer - 1] == "="):
