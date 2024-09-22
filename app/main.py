@@ -21,8 +21,6 @@ def main():
     
     if command == "tokenize":
         tokenize(file_contents)
-        for tokens in tokenize(file_contents):
-            print(tokens)
         print(f"file_contents: {file_contents}" )
         print(f"file_length: {len(file_contents)}" )
     elif command == "parse":
@@ -192,21 +190,23 @@ def tokenize(file_contents):
                         tokens.append(f"IDENTIFIER {value} null")
                     pointer += 1
                 case "$"|"#"|"@"|"%":
-                    a=(f"[line {line_number}] Error: Unexpected character: {char}")
-                    tokens.append(a)
+                    tokens.append(f"[line {line_number}] Error: Unexpected character: {char}")
                     lexical_errors = True
                     pointer += 1 
 
         tokens.append("EOF  null")
         
         if lexical_errors:
+            for token in tokens:
+                print(token)
             exit(65)
         else:
+            for token in tokens:
+                print(token)
             exit(0)
-        return tokens
                 
     except Exception as e:
-        print(f"An unexpected error occurred: {str(e)}")
+        print(f"An unexpected error occurred: {str(e)}", file=sys.stderr)
         exit(1)
 
 if __name__ == "__main__":
