@@ -21,6 +21,8 @@ def main():
     
     if command == "tokenize":
         tokenize(file_contents)
+        for tokens in tokenize(file_contents):
+            print(tokens)
         print(f"file_contents: {file_contents}" )
         print(f"file_length: {len(file_contents)}" )
     elif command == "parse":
@@ -201,8 +203,7 @@ def tokenize(file_contents):
             exit(65)
         else:
             exit(0)
-        for token in tokens:
-                print(token)
+        return tokens
                 
     except Exception as e:
         print(f"An unexpected error occurred: {str(e)}")
