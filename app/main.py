@@ -130,7 +130,7 @@ def tokenize(file_contents):
                         tokens.append(f'STRING "{value}" {value}')
                         pointer += 2
                     else:
-                        error_message=(f'[line {line_number}] Error: Unterminated string. " ')
+                        error_message=(f'[line {line_number}] Error: Unterminated string." ')
                         tokens.append(error_message)
                         lexical_errors = True
                         pointer += 1
