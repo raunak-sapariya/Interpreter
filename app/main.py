@@ -198,8 +198,6 @@ def tokenize(file_contents):
         tokens.append("EOF  null")
         
         if lexical_errors:
-            for token in tokens:
-                print(token)
             exit(65)
         else:
             for token in tokens:
