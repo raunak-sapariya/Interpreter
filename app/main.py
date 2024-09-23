@@ -21,7 +21,6 @@ def main():
     
     if command == "tokenize":
         tokens, lexical_errors = tokenize(file_contents)
-        print(type(tokens))
         for token in tokens:
             if token.startswith("[line"):
                 print(token, file=sys.stderr)
@@ -185,10 +184,11 @@ def parse(tokens):
     last=len(tokens)-1
 
     for token in tokens:
-        if token.startswith("True"):return("true")
-        if token.startswith("False"):return("flase")
-        if token.startswith("Nil"):return("nil")
-        else:return("error")
+
+        if token.startswith("TRUE"):print("true")
+        elif token.startswith("FALSE"):print("flase")
+        elif token.startswith("Nil"):print("nil")
+        else:print("error")
 
 
 
