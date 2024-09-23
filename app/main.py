@@ -197,7 +197,7 @@ def parse(tokens):
         elif token.startswith("FALSE"):parse_result.append("false")
         elif token.startswith("NIL"):parse_result.append("nil")
         elif token.startswith("NUMBER"):parse_result.append(float(token.split()[1]))
-        elif token.startswith("STRING"):parse_result.append(token.split()[1])
+        elif token.startswith("STRING"):parse_result.append(token.split()[2])
 
     return parse_result,parser_errors
 
