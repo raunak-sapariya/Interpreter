@@ -34,6 +34,7 @@ def main():
     elif command == "parse":
         tokens,lexical_errors= tokenize(file_contents)
         parse(tokens)
+        return
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         exit(1)
@@ -184,10 +185,10 @@ def parse(tokens):
     last=len(tokens)-1
 
     for token in tokens:
-        if match("True"):print("true")
-        if match("False"):print("flase")
-        if match("Nil"):print("nil")
-        else:print("error")
+        if token.startswith("True"):return("true")
+        if token.startswith("False"):return("flase")
+        if token.startswith("Nil"):return("nil")
+        else:return("error")
 
 
 
