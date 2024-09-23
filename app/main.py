@@ -184,10 +184,10 @@ def parse(tokens):
     last=len(tokens)-1
 
     for token in tokens:
-        if token.startswith("True"):return("true")
-        if token.startswith("False"):return("flase")
-        if token.startswith("Nil"):return("nil")
-        else:return("error")
+        if token.startswith("True"):print("true")
+        if token.startswith("False"):print("flase")
+        if token.startswith("Nil"):print("nil")
+        else:print("error")
 
 
 
