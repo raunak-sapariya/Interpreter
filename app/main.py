@@ -178,7 +178,63 @@ def tokenize(file_contents):
         return tokens, lexical_errors
 
 def parse(tokens):
-    print(tokens)
+    token_len=len(tokens)
+    first=0
+    previous=first-1
+    last=len(tokens)-1
+
+    for token in tokens:
+        if token.startswith("IDENTIFIER"):
+            print(token)
+        elif token.startswith("NUMBER"):
+            print(token)
+        elif token.startswith("STRING"):
+            print(token)
+        elif token.startswith("LEFT_PAREN"):
+            print(token)
+        elif token.startswith("RIGHT_PAREN"):
+            print(token)
+        elif token.startswith("LEFT_BRACE"):
+            print(token)
+        elif token.startswith("RIGHT_BRACE"):
+            print(token)
+        elif token.startswith("COMMA"):
+            print(token)
+        elif token.startswith("MINUS"):
+            print(token)
+        elif token.startswith("PLUS"):
+            print(token)
+        elif token.startswith("SEMICOLON"):
+            print(token)
+        elif token.startswith("STAR"):
+            print(token)
+        elif token.startswith("EQUAL"):
+            print(token)
+        elif token.startswith("EQUAL_EQUAL"):
+            print(token)
+        elif token.startswith("BANG"):
+            print(token)
+        elif token.startswith("BANG_EQUAL"):
+            print(token)
+        elif token.startswith("LESS"):
+            print(token)
+        elif token.startswith("LESS_EQUAL"):
+            print(token)
+        elif token.startswith("GREATER"):
+            print(token)
+        elif token.startswith("GREATER_EQUAL"):
+            print(token)
+        elif token.startswith("SLASH"):
+            print(token)
+        elif token.startswith("DOT"):
+            print(token)
+        elif token.startswith("EOF"):
+            print(token)
+        else:
+            print(token)
+
+
+
 if __name__ == "__main__":
     main()
 
