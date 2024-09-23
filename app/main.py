@@ -183,7 +183,7 @@ def tokenize(file_contents):
                         value = file_contents[start:pointer]
                         tokens.append(f"NUMBER {value} {float(value)}")
 
-                    elif pointer< len(file_contents) and file_contents[pointer] == ".": 
+                    elif pointer+1< len(file_contents) and (file_contents[pointer] == "."  and file_contents[pointer + 1] in "0123456789"): 
                         if pointer + 1 < len(file_contents) and file_contents[pointer + 1] in "0123456789":
                             pointer += 1
                             while pointer < len(file_contents) and file_contents[pointer] in "0123456789":
