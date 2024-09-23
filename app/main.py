@@ -184,10 +184,9 @@ def parse(tokens):
     last=len(tokens)-1
 
     for token in tokens:
-
         if token.startswith("TRUE"):print("true")
         elif token.startswith("FALSE"):print("false")
-        elif token.startswith("Nil"):print("nil")
+        elif token.startswith("NIL"):print("nil")
 
 
 
