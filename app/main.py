@@ -188,7 +188,6 @@ def tokenize(file_contents):
                                 pointer += 1
                         value = file_contents[start:pointer]
                         tokens.append(f"NUMBER {value} {float(value)}")
-                        pointer += 1
                     else:
                         tokens.append("DOT . null")
                         pointer += 1
