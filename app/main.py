@@ -188,7 +188,6 @@ def parse(tokens):
         if token.startswith("TRUE"):print("true")
         elif token.startswith("FALSE"):print("flase")
         elif token.startswith("Nil"):print("nil")
-        else:print("error")
 
 
 
