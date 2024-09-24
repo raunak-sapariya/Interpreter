@@ -194,6 +194,22 @@ def parse(tokens):
     parser_errors=False
     parse_result=[]
 
+    def extract_value(token):
+    # Handle extracting actual value from tokens like STRING, NUMBER, TRUE, FALSE, NIL
+        if token.startswith("STRING"):
+            return token.split('"')[1]  # Extract the actual string value
+        elif token.startswith("NUMBER"):
+            return token.split()[1]  # Extract the number value
+        elif token.startswith("TRUE"):
+            return "true"
+        elif token.startswith("FALSE"):
+            return "false"
+        elif token.startswith("NIL"):
+            return "nil"
+        else:
+            return token  # For other tokens, return as is
+
+
     while  fst < token_len:
         token=tokens[fst]
         if token.startswith("TRUE"):parse_result.append("true")
@@ -231,7 +247,7 @@ def parse(tokens):
                     if nested_count > 0:
                         l.append(current_token)  # Add the RIGHT_PAREN if it's not the closing one for the current group
                 else:
-                    l.append(current_token)  # Add any other token inside the parentheses
+                    l.append(extract_value(current_token))  # Use extract_value to get the actual token value
 
                 fst += 1  # Move to the next token
 
@@ -245,6 +261,7 @@ def parse(tokens):
                 print("Error: Unterminated nested parentheses")
 
             fst += 1  # Move past the last RIGHT_PAREN
+
 
         
             
