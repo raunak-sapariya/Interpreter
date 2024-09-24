@@ -33,8 +33,9 @@ def main():
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
         parse_result, parser_errors = parse(tokens) 
-        # print(tokens)
-        # print(parse_result)
+        print(tokens)
+        print()
+        print(parse_result)
         for result in parse_result:
             print(result)
         if parser_errors:
@@ -201,18 +202,37 @@ def parse(tokens):
         elif token.startswith("NUMBER"):parse_result.append(float(token.split()[1]))
         elif token.startswith("STRING"):parse_result.append(token.split('"')[1])
         elif token.startswith("LEFT_PAREN"):
-            fst += 1  
-            l = []
-            while fst < token_len and not tokens[fst].startswith("RIGHT_PAREN"):
-                l.append(tokens[fst]) 
-                fst += 1 
-            if fst < token_len and tokens[fst].startswith("RIGHT_PAREN"):
-                value = f"(group {' '.join(t.split('\"')[1] for t in l)})"
-                parse_result.append(value)  
+            fst += 1  # Move past the LEFT_PAREN token
+            l = []  # List to store tokens inside the parentheses
+            nested_count = 1  # Track nested parentheses
+
+            while fst < token_len and nested_count > 0:
+                current_token = tokens[fst]
+
+                if current_token.startswith("LEFT_PAREN"):
+                    nested_count += 1  # Found another LEFT_PAREN, increase the nesting level
+                    l.append(current_token)  # Add the LEFT_PAREN token to the list
+                elif current_token.startswith("RIGHT_PAREN"):
+                    nested_count -= 1  # Found a RIGHT_PAREN, reduce the nesting level
+                    if nested_count > 0:
+                        l.append(current_token)  # Add the RIGHT_PAREN if it's not the closing one for the current group
+                else:
+                    l.append(current_token)  # Add any other token inside the parentheses
+
+                fst += 1  # Move to the next token
+
+            if nested_count == 0:
+                # Successfully closed all nested parentheses
+                value = f"(group {' '.join([t.split()[1] for t in l])})"
+                print("Parsed nested group:", value)
+                parse_result.append(value)  # Append the grouped result
             else:
+                # If we exit the loop with unbalanced parentheses
                 parser_errors = True
-                print("Error: Unterminated parentheses")
-            fst += 1  
+                print("Error: Unterminated nested parentheses")
+
+            fst += 1  # Move past the last RIGHT_PAREN
+        
             
 
                 
