@@ -223,8 +223,21 @@ def parse(tokens):
 
             if nested_count == 0:
                 # Successfully closed all nested parentheses
-                value = f"(group {' '.join([t.split("\"")[1] for t in l])})"
-                # print("Parsed nested group:", value)
+                def extract_value(token):
+                    if token.startswith("NUMBER"):
+                        return token.split()[1]  # Extract the number
+                    elif token.startswith("STRING"):
+                        return token.split('"')[1]  # Extract the string value
+                    elif token.startswith("TRUE"):
+                        return "true"
+                    elif token.startswith("FALSE"):
+                        return "false"
+                    elif token.startswith("NIL"):
+                        return "nil"
+                    else:
+                        return token.split()[1] if len(token.split()) > 1 else token  # Handle identifiers or other tokens
+
+                value = f"(group {' '.join([extract_value(t) for t in l])})"
                 parse_result.append(value)  # Append the grouped result
             else:
                 # If we exit the loop with unbalanced parentheses
@@ -232,6 +245,7 @@ def parse(tokens):
                 print("Error: Unterminated nested parentheses")
 
             fst += 1  # Move past the last RIGHT_PAREN
+
         
             
 
