@@ -210,10 +210,24 @@ def parse(tokens):
                 current_token = tokens[fst]
 
                 if current_token.startswith("LEFT_PAREN"):
-                    nested_count += 1  # Found another LEFT_PAREN, increase the nesting level
-                    l.append(current_token)  # Add the LEFT_PAREN token to the list
+                    # Recursively parse the inner group
+                    fst += 1
+                    group_tokens = []
+                    while fst < token_len and not tokens[fst].startswith("RIGHT_PAREN"):
+                        group_tokens.append(tokens[fst])
+                        fst += 1
+
+                    if fst < token_len and tokens[fst].startswith("RIGHT_PAREN"):
+                        value = f"(group {' '.join([extract_value(t) for t in group_tokens])})"
+                        l.append(value)  # Add the grouped value as a token
+                        nested_count -= 1
+                    else:
+                        parser_errors = True
+                        print("Error: Unterminated parentheses")
+                        break
+
                 elif current_token.startswith("RIGHT_PAREN"):
-                    nested_count -= 1  # Found a RIGHT_PAREN, reduce the nesting level
+                    nested_count -= 1  # Reduce the nesting level
                     if nested_count > 0:
                         l.append(current_token)  # Add the RIGHT_PAREN if it's not the closing one for the current group
                 else:
@@ -223,21 +237,7 @@ def parse(tokens):
 
             if nested_count == 0:
                 # Successfully closed all nested parentheses
-                def extract_value(token):
-                    if token.startswith("NUMBER"):
-                        return token.split()[1]  # Extract the number
-                    elif token.startswith("STRING"):
-                        return token.split('"')[1]  # Extract the string value
-                    elif token.startswith("TRUE"):
-                        return "true"
-                    elif token.startswith("FALSE"):
-                        return "false"
-                    elif token.startswith("NIL"):
-                        return "nil"
-                    else:
-                        return token.split()[1] if len(token.split()) > 1 else token  # Handle identifiers or other tokens
-
-                value = f"(group {' '.join([extract_value(t) for t in l])})"
+                value = f"(group {' '.join(l)})"
                 parse_result.append(value)  # Append the grouped result
             else:
                 # If we exit the loop with unbalanced parentheses
