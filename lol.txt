@@ -1,12 +1,2 @@
-true
-false
-nil
-23
-.3
-0.3
-00.2
-3213.24
-4554
-"dsjkfkjsd"
-"hello baz"
-("foo")
+2"sdds"
+("nvsdjv bhbj jhb jhb jhb hjb jh ""fjgfghfhg")

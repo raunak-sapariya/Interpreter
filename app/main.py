@@ -33,6 +33,7 @@ def main():
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
         parse_result, parser_errors = parse(tokens) 
+        print(tokens)
         print(parse_result)
         for result in parse_result:
             print(result)
@@ -186,19 +187,38 @@ def tokenize(file_contents):
 
 def parse(tokens):
     token_len=len(tokens)
-    first=0
-    previous=first-1
+    fst=0
+    previous=fst-1
     last=len(tokens)-1
     parser_errors=False
     parse_result=[]
 
-    for token in tokens:
+    while  fst < token_len:
+        token=tokens[fst]
         if token.startswith("TRUE"):parse_result.append("true")
         elif token.startswith("FALSE"):parse_result.append("false")
         elif token.startswith("NIL"):parse_result.append("nil")
         elif token.startswith("NUMBER"):parse_result.append(float(token.split()[1]))
         elif token.startswith("STRING"):parse_result.append(token.split('"')[1])
+        elif token.startswith("LEFT_PAREN"):
+            fst += 1  
+            l = []
+            while fst < token_len and not tokens[fst].startswith("RIGHT_PAREN"):
+                l.append(tokens[fst]) 
+                fst += 1 
+            if fst < token_len and tokens[fst].startswith("RIGHT_PAREN"):
+                value = f"(group {' '.join(t.split('\"')[1] for t in l)})"
+                parse_result.append(value)  
+            else:
+                parser_errors = True
+                print("Error: Unterminated parentheses")
+            fst += 1  
+            
 
+                
+
+
+        fst+=1
     return parse_result,parser_errors
 
 
