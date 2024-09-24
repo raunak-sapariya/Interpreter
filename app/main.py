@@ -33,8 +33,8 @@ def main():
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
         parse_result, parser_errors = parse(tokens) 
-        print(tokens)
-        print()
+        # print(tokens)
+        # print()
         print(parse_result)
         for result in parse_result:
             print(result)
@@ -224,7 +224,7 @@ def parse(tokens):
             if nested_count == 0:
                 # Successfully closed all nested parentheses
                 value = f"(group {' '.join([t.split()[1] for t in l])})"
-                print("Parsed nested group:", value)
+                # print("Parsed nested group:", value)
                 parse_result.append(value)  # Append the grouped result
             else:
                 # If we exit the loop with unbalanced parentheses
