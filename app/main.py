@@ -35,7 +35,7 @@ def main():
         parse_result, parser_errors = parse(tokens) 
         # print(tokens)
         # print()
-        print(parse_result)
+        # print(parse_result)
         for result in parse_result:
             print(result)
         if parser_errors:
