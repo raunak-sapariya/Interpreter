@@ -223,7 +223,7 @@ def parse(tokens):
 
             if nested_count == 0:
                 # Successfully closed all nested parentheses
-                value = f"(group {' '.join([t.split()[1] for t in l])})"
+                value = f"(group {' '.join([t.split("\"")[1] for t in l])})"
                 # print("Parsed nested group:", value)
                 parse_result.append(value)  # Append the grouped result
             else:
