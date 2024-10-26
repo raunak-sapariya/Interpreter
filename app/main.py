@@ -205,7 +205,7 @@ def parse(tokens):
     def parse_equality():
         expr = parse_comparison()
         while match("BANG_EQUAL") or match("EQUAL_EQUAL"):
-            operator = tokens[current - 1]
+            operator = tokens[current - 1].split()[1]
             right = parse_comparison()
             expr = f"({operator} {expr} {right})"
         return expr
@@ -213,7 +213,7 @@ def parse(tokens):
     def parse_comparison():
         expr = parse_term()
         while match("GREATER") or match("GREATER_EQUAL") or match("LESS") or match("LESS_EQUAL"):
-            operator = tokens[current - 1]
+            operator = tokens[current - 1].split()[1]
             right = parse_term()
             expr = f"({operator} {expr} {right})"
         return expr
@@ -221,7 +221,7 @@ def parse(tokens):
     def parse_term():
         expr = parse_factor()
         while match("MINUS") or match("PLUS"):
-            operator = tokens[current - 1]
+            operator = tokens[current - 1].split()[1]
             right = parse_factor()
             expr = f"({operator} {expr} {right})"
         return expr
@@ -229,7 +229,7 @@ def parse(tokens):
     def parse_factor():
         expr = parse_unary()
         while match("STAR") or match("SLASH"):
-            operator = tokens[current - 1]
+            operator = tokens[current - 1].split()[1]
             right = parse_unary()
             expr = f"({operator} {expr} {right})"
         return expr
