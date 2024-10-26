@@ -260,11 +260,10 @@ def parse(tokens):
             if not match("RIGHT_PAREN"):
                 nonlocal parser_errors
                 parser_errors = True
-                return "[Error: Expected ')']"
+                return "[Error: Expected hgggggggggggggggggk')']"
             return f"(group {expr})"
         
-        parser_errors = True
-        return "[Error: Expected expression]"
+        
 
     expr = parse_expression()
     parse_result.append(expr)
