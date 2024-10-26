@@ -34,7 +34,10 @@ def main():
         tokens, lexical_errors = tokenize(file_contents)
         parse_result, parser_errors = parse(tokens)
         for result in parse_result:
-            print(result)       
+            if result.startswith("[Error"):
+                print(result, file=sys.stderr)
+            else:
+                print(result)       
         if parser_errors:
             exit(65)
         else:
