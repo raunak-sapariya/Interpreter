@@ -261,8 +261,7 @@ def parse(tokens):
             expr = parse_expression()
             if not match("RIGHT_PAREN"):
                 parser_errors = True
-                parse_result.append("[Error: Expected ')']")
-                return None
+                return("[Error: Expected ')']") 
             return f"(group {expr})"
         
     expr = parse_expression()
