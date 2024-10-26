@@ -269,7 +269,7 @@ def parse(tokens):
         parse_result.append(expr)
     else:
         parser_errors = True
-        parse_result.append("[Error: Expected expression]")
+        parser_errors.append("[Error: Expected expression]")
     return parse_result, parser_errors
 
 if __name__ == "__main__":
