@@ -236,7 +236,7 @@ def parse(tokens):
 
     def parse_unary():
         if match("BANG") or match("MINUS"):
-            operator = tokens[current - 1]
+            operator = tokens[current - 1].split()[1]
             right = parse_unary()
             return f"({operator} {right})"
         return parse_primary()
