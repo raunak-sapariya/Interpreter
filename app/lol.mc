@@ -1,1 +1,1 @@
-"fff dssdc sc c d cs cs cs cs cs quz world"
+("foo")
