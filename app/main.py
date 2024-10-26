@@ -189,71 +189,48 @@ def parse(tokens):
     parse_result = []
 
     def match(expected):
-        nonlocal current
-        if current < len(tokens) and tokens[current].startswith(expected):
+        nonlocal current, parser_errors
+        if current >= len(tokens) or tokens[current].startswith("EOF"):
+            parser_errors = True
+            parse_result.append("[Error: Expected expression]")
+            return False
+        if tokens[current].startswith(expected):
             current += 1
             return True
         return False
-
-    def check(expected):
-        if current >= len(tokens):
-            return False
-        return tokens[current].startswith(expected)
 
     def parse_expression():
         return parse_equality()
 
     def parse_equality():
         expr = parse_comparison()
-        if expr is None:
-            return None
         while match("BANG_EQUAL") or match("EQUAL_EQUAL"):
             operator = tokens[current - 1].split()[1]
             right = parse_comparison()
-            if right is None:
-                return None
             expr = f"({operator} {expr} {right})"
         return expr
 
     def parse_comparison():
         expr = parse_term()
-        if expr is None:
-            return None
         while match("GREATER") or match("GREATER_EQUAL") or match("LESS") or match("LESS_EQUAL"):
             operator = tokens[current - 1].split()[1]
             right = parse_term()
-            if right is None:
-                return None
             expr = f"({operator} {expr} {right})"
         return expr
 
     def parse_term():
         expr = parse_factor()
-        if expr is None:
-            return None
         while match("MINUS") or match("PLUS"):
             operator = tokens[current - 1].split()[1]
             right = parse_factor()
-            if right is None:
-                nonlocal parser_errors
-                parser_errors = True
-                parse_result.append("[Error: Expected expression]")
-                return None
             expr = f"({operator} {expr} {right})"
         return expr
 
     def parse_factor():
         expr = parse_unary()
-        if expr is None:
-            return None
         while match("STAR") or match("SLASH"):
             operator = tokens[current - 1].split()[1]
             right = parse_unary()
-            if right is None:
-                nonlocal parser_errors
-                parser_errors = True
-                parse_result.append("[Error: Expected expression]")
-                return None
             expr = f"({operator} {expr} {right})"
         return expr
 
@@ -261,11 +238,6 @@ def parse(tokens):
         if match("BANG") or match("MINUS"):
             operator = tokens[current - 1].split()[1]
             right = parse_unary()
-            if right is None:
-                nonlocal parser_errors
-                parser_errors = True
-                parse_result.append("[Error: Expected expression]")
-                return None
             return f"({operator} {right})"
         return parse_primary()
 
@@ -286,8 +258,6 @@ def parse(tokens):
             return tokens[current - 1].split()[1]
         if match("LEFT_PAREN"):
             expr = parse_expression()
-            if expr is None:
-                return None
             if not match("RIGHT_PAREN"):
                 parser_errors = True
                 parse_result.append("[Error: Expected ')']")
@@ -299,7 +269,7 @@ def parse(tokens):
         return None
 
     expr = parse_expression()
-    if expr is not None:
+    if expr:
         parse_result.append(expr)
     elif not parse_result:  # Only add if no error message has been added yet
         parser_errors = True
