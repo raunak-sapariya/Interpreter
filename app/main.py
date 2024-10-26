@@ -259,7 +259,7 @@ def parse(tokens):
             if not match("RIGHT_PAREN"):
                 nonlocal parser_errors
                 parser_errors = True
-                return "[Error: Expected ')']"
+                # return "[Error: Expected ')']"
                 parse_result.append(f"[Error: Expected ')']")
             return f"(group {expr})"
 
