@@ -34,14 +34,11 @@ def main():
         tokens, lexical_errors = tokenize(file_contents)
         parse_result, parser_errors = parse(tokens)
         for result in parse_result:
-            if result.startswith("[line"):
-                print(result, file=sys.stderr)
-            else:
-                print(result)
-        if lexical_errors or parser_errors:
+            print(result, file=sys.stderr)       
+        if parser_errors:
             exit(65)
-
-        exit(0)
+        else:
+            exit(0)
 
 
    
@@ -188,113 +185,93 @@ def tokenize(file_contents):
         
         return tokens, lexical_errors
 
+
 def parse(tokens):
-    parse_result = []
+    current = 0
     parser_errors = False
+    parse_result = []
+
+    def match(expected):
+        nonlocal current
+        if current < len(tokens) and tokens[current].startswith(expected):
+            current += 1
+            return True
+        return False
+
+    def parse_expression():
+        return parse_equality()
+
+    def parse_equality():
+        expr = parse_comparison()
+        while match("BANG_EQUAL") or match("EQUAL_EQUAL"):
+            operator = tokens[current - 1].split()[1]
+            right = parse_comparison()
+            expr = f"({operator} {expr} {right})"
+        return expr
+
+    def parse_comparison():
+        expr = parse_term()
+        while match("GREATER") or match("GREATER_EQUAL") or match("LESS") or match("LESS_EQUAL"):
+            operator = tokens[current - 1].split()[1]
+            right = parse_term()
+            expr = f"({operator} {expr} {right})"
+        return expr
+
+    def parse_term():
+        expr = parse_factor()
+        while match("MINUS") or match("PLUS"):
+            operator = tokens[current - 1].split()[1]
+            right = parse_factor()
+            expr = f"({operator} {expr} {right})"
+        return expr
+
+    def parse_factor():
+        expr = parse_unary()
+        while match("STAR") or match("SLASH"):
+            operator = tokens[current - 1].split()[1]
+            right = parse_unary()
+            expr = f"({operator} {expr} {right})"
+        return expr
+
+    def parse_unary():
+        if match("BANG") or match("MINUS"):
+            operator = tokens[current - 1].split()[1]
+            right = parse_unary()
+            return f"({operator} {right})"
+        return parse_primary()
+
+    def parse_primary():
+        if match("FALSE"):
+            return "false"
+        if match("TRUE"):
+            return "true"
+        if match("NIL"):
+            return "nil"
+        if match("NUMBER"):
+            return tokens[current - 1].split()[2]
+        if match("STRING"):
+            q=tokens[current - 1].split('"',1)
+            return f'{q[1].split('"', 1)[0]}'
+        if match("IDENTIFIER"):
+            return tokens[current - 1]
+        if match("LEFT_PAREN"):
+            expr = parse_expression()
+            if not match("RIGHT_PAREN"):
+                nonlocal parser_errors
+                parser_errors = True
+                parse_result.append(f"[Error: Expected ')' after expression]")
+            return f"(group {expr})"
+        
     
-    class parser:
-        def __init__(self,tokens):
-            self.tokens=tokens
-            self.current=0
+    expr = parse_expression()
+    if expr:
+        parse_result.append(expr)
+    else:
+        parser_errors = True
+        error=("[Error: Expected expression]")
+        parse_result.append(error)
 
-        def expression(self):
-            return self.equality()
-
-        def equality(self):
-            expr=self.comparison()
-            while self.match("BANG_EQUAL","EQUAL_EQUAL"):
-                operator=self.previous
-                right=self.comparison()
-                expr=[operator,expr,right]
-            return expr
-
-        def comparison(self):
-            expr=self.term()
-            while self.match("GREATER","GREATER_EQUAL","LESS","LESS_EQUAL"):
-                operator=self.previous
-                right=self.term()
-                expr=[operator,expr,right]
-            return expr 
-
-        def term(self):
-            expr=self.factor()
-            while self.match("MINUS","PLUS"):
-                operator=self.previous
-                right=self.factor()
-                expr=[operator,expr,right]
-            return expr
-
-        def factor(self):
-            expr=self.unary()
-            while self.match("SLASH","STAR"):
-                operator=self.previous
-                right=self.unary()
-                expr=[operator,expr,right]
-            return expr
-        
-        def unary(self):
-            if self.match("BANG","MINUS"):
-                operator=self.previous
-                right=self.unary()
-                return [operator,right]
-            return self.primary()
-
-        def primary(self):
-            if self.match("FALSE"):
-                return "false"
-            if self.match("TRUE"):
-                return "true"
-            if self.match("NIL"):
-                return "nil"
-            if self.match("NUMBER","STRING"):
-                return self.previous
-            if self.match("LEFT_PAREN"):
-                expr=self.expression()
-                self.consume("RIGHT_PAREN","Expect ')' after expression.")
-                return expr
-            error=self.peek()
-            self.error(error,"Expect expression.")
-
-        def match(self,*types):
-            for type in types:
-                if self.check(type):
-                    self.advance()
-                    return True
-            return False
-        
-        def check(self,type):
-            if self.is_at_end():
-                return False
-            return self.peek()["type"]==type
-
-        def advance(self):
-            if not self.is_at_end():
-                self.current+=1
-            return self.previous_token()
-
-        def is_at_end(self):
-            return self.peek()["type"]=="EOF"
-
-        def peek(self):
-            return self.tokens[self.current]
-
-        def previous_token(self):
-            return self.tokens[self.current-1]
-
-        def consume(self,type,message):
-            if self.check(type):
-                return self.advance()
-            self.error(self.peek(),message)
-
-        def error(self,token,message):
-            parser_errors=True
-            error_message=(f"[line {token['line']}] Error at '{token['type']}': {message}")
-            parse_result.append(error_message)
-
-    parser=parser(tokens)
-    parse_result.append(parser.expression())
-    return parse_result,parser_errors
-
+    return parse_result, parser_errors
 
 if __name__ == "__main__":
     main()
