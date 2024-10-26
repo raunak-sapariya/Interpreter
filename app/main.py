@@ -33,12 +33,13 @@ def main():
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
         parse_result, parser_errors = parse(tokens)
+        print(parser_errors)
+        for result in parse_result:
+            print(result, file=sys.stderr)       
         if parser_errors:
             exit(65)
         else:
             exit(0)
-        for result in parse_result:
-            print(result, file=sys.stderr)       
 
 
    
