@@ -16,8 +16,6 @@ def main():
     except FileNotFoundError:
         print(f"Error: File '{filename}' not found.", file=sys.stderr)
         exit(1)
-
-    #print(f"Command: {command}", f"Filename: {filename}", file=sys.stderr)
     
     if command == "tokenize":
         tokens, lexical_errors = tokenize(file_contents)
@@ -42,8 +40,6 @@ def main():
             exit(65)
         else:
             exit(0)
-
-   
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         exit(1)
@@ -187,7 +183,6 @@ def tokenize(file_contents):
         
         return tokens, lexical_errors
 
-
 def parse(tokens):
     current = 0
     parser_errors = False
@@ -199,6 +194,11 @@ def parse(tokens):
             current += 1
             return True
         return False
+
+    def check(expected):
+        if current >= len(tokens):
+            return False
+        return tokens[current].startswith(expected)
 
     def parse_expression():
         return parse_equality()
@@ -243,6 +243,7 @@ def parse(tokens):
         return parse_primary()
 
     def parse_primary():
+        nonlocal parser_errors
         if match("FALSE"):
             return "false"
         if match("TRUE"):
@@ -255,26 +256,27 @@ def parse(tokens):
             q=tokens[current - 1].split('"',1)
             return f'{q[1].split('"', 1)[0]}'
         if match("IDENTIFIER"):
-            return tokens[current - 1]
+            return tokens[current - 1].split()[1]
         if match("LEFT_PAREN"):
             expr = parse_expression()
             if not match("RIGHT_PAREN"):
-                nonlocal parser_errors
                 parser_errors = True
-                parse_result.append(f"[Error: Expected ')']")
+                parse_result.append("[Error: Expected ')']")
                 return None
             return f"(group {expr})"
+        
+        parser_errors = True
+        parse_result.append("[Error: Expected expression]")
+        return None
 
     expr = parse_expression()
     if expr:
         parse_result.append(expr)
-    else:
+    elif not parse_result:  # Only add if no error message has been added yet
         parser_errors = True
-        error=("[Error: Expected expression]")
-        parse_result.append(error)
+        parse_result.append("[Error: Expected expression]")
 
     return parse_result, parser_errors
 
 if __name__ == "__main__":
     main()
-
