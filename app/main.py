@@ -251,7 +251,8 @@ def parse(tokens):
         if match("NUMBER"):
             return tokens[current - 1].split()[2]
         if match("STRING"):
-            return tokens[current - 1].split()[2]
+            q=tokens[current - 1].split('"',1)
+            return f'"{q[1].split('"', 1)[0]}"'
         if match("IDENTIFIER"):
             return tokens[current - 1]
         if match("LEFT_PAREN"):
