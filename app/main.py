@@ -33,9 +33,6 @@ def main():
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
         parse_result, parser_errors = parse(tokens)
-        print("Tokens:",tokens) 
-        print("Parser errors:",parser_errors)
-        print ("Parse result:",parse_result)
         for result in parse_result:
             print(result)       
         if parser_errors:
@@ -188,7 +185,7 @@ def tokenize(file_contents):
         
         return tokens, lexical_errors
 
-# Complete parse function
+
 def parse(tokens):
     current = 0
     parser_errors = False
