@@ -182,7 +182,7 @@ def tokenize(file_contents):
                     lexical_errors = True
                     pointer += 1 
 
-        tokens.append("EOF null")
+        tokens.append("EOF  null")
         
         return tokens, lexical_errors
 
