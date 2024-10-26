@@ -265,10 +265,6 @@ def parse(tokens):
                 return None
             return f"(group {expr})"
         
-        parser_errors = True
-        parse_result.append("[Error: Expected expression]")
-        return None
-
     expr = parse_expression()
     if expr:
         parse_result.append(expr)
