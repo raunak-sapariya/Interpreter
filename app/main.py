@@ -263,7 +263,8 @@ def parse(tokens):
                 return "[Error: Expected hgggggggggggggggggk')']"
             return f"(group {expr})"
         
-        
+        return "[Error: Expected expression]"
+        parser_errors = True
 
     expr = parse_expression()
     parse_result.append(expr)
