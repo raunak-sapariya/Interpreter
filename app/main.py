@@ -252,7 +252,7 @@ def parse(tokens):
             return tokens[current - 1].split()[2]
         if match("STRING"):
             q=tokens[current - 1].split('"',1)
-            return f'"{q[1].split('"', 1)[0]}"'
+            return f'{q[1].split('"', 1)[0]}'
         if match("IDENTIFIER"):
             return tokens[current - 1]
         if match("LEFT_PAREN"):
@@ -261,6 +261,7 @@ def parse(tokens):
                 nonlocal parser_errors
                 parser_errors = True
                 return "[Error: Expected ')']"
+            print(expr)
             return f'(group {expr})'
         
         parser_errors = True
