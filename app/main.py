@@ -260,7 +260,6 @@ def parse(tokens):
                 nonlocal parser_errors
                 parser_errors = True
                 parse_result.append(f"[Error: Expected ')' after expression]")
-                return "[Error: Expected ')' after expression]"
             return f"(group {expr})"
         
     
