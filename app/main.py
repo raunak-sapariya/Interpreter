@@ -32,16 +32,18 @@ def main():
              exit(0)
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
-        parse_result, parser_errors = parse(tokens) 
-        # print(tokens)
-        # print()
-        # print(parse_result)
+        parse_result, parser_errors = parse(tokens)
+        print("Tokens:",tokens) 
+        print("Parser errors:",parser_errors)
+        print ("Parse result:",parse_result)
         for result in parse_result:
-            print(result)
+            print(result)       
         if parser_errors:
             exit(65)
         else:
             exit(0)
+
+
    
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
@@ -260,14 +262,14 @@ def parse(tokens):
             if not match("RIGHT_PAREN"):
                 nonlocal parser_errors
                 parser_errors = True
-                return "[Error: Expected hgggggggggggggggggk')']"
+                parse_result.append(f"[Error: Expected ')' after expression]")
+                return "[Error: Expected ')' after expression]"
             return f"(group {expr})"
         
-        return "[Error: Expected expression]"
-        parser_errors = True
-
+    
     expr = parse_expression()
-    parse_result.append(expr)
+    if expr:
+        parse_result.append(expr)
     return parse_result, parser_errors
 
 if __name__ == "__main__":
