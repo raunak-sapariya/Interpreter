@@ -22,14 +22,14 @@ def main():
     if command == "tokenize":
         tokens, lexical_errors = tokenize(file_contents)
         for token in tokens:
-            if token.startswith("[line"):
-                print(token, file=sys.stderr)
-            else:
-                print(token)
+             if token.startswith("[line"):
+                 print(token, file=sys.stderr)
+             else:
+                 print(token)
         if lexical_errors:
-            exit(65)
+             exit(65)
         else:
-            exit(0)
+             exit(0)
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
         parse_result, parser_errors = parse(tokens) 
@@ -182,97 +182,92 @@ def tokenize(file_contents):
                     lexical_errors = True
                     pointer += 1 
 
-        tokens.append("EOF  null")
+        tokens.append("EOF null")
         
         return tokens, lexical_errors
 
+# Complete parse function
 def parse(tokens):
-    token_len=len(tokens)
-    fst=0
-    previous=fst-1
-    last=len(tokens)-1
-    parser_errors=False
-    parse_result=[]
+    current = 0
+    parser_errors = False
+    parse_result = []
 
-    def extract_value(token):
-    # Handle extracting actual value from tokens like STRING, NUMBER, TRUE, FALSE, NIL
-        if token.startswith("STRING"):
-            return token.split('"')[1]  # Extract the actual string value
-        elif token.startswith("NUMBER"):
-            return token.split()[1]  # Extract the number value
-        elif token.startswith("TRUE"):
-            return "true"
-        elif token.startswith("FALSE"):
+    def match(expected):
+        nonlocal current
+        if current < len(tokens) and tokens[current].startswith(expected):
+            current += 1
+            return True
+        return False
+
+    def parse_expression():
+        return parse_equality()
+
+    def parse_equality():
+        expr = parse_comparison()
+        while match("BANG_EQUAL") or match("EQUAL_EQUAL"):
+            operator = tokens[current - 1]
+            right = parse_comparison()
+            expr = f"({operator} {expr} {right})"
+        return expr
+
+    def parse_comparison():
+        expr = parse_term()
+        while match("GREATER") or match("GREATER_EQUAL") or match("LESS") or match("LESS_EQUAL"):
+            operator = tokens[current - 1]
+            right = parse_term()
+            expr = f"({operator} {expr} {right})"
+        return expr
+
+    def parse_term():
+        expr = parse_factor()
+        while match("MINUS") or match("PLUS"):
+            operator = tokens[current - 1]
+            right = parse_factor()
+            expr = f"({operator} {expr} {right})"
+        return expr
+
+    def parse_factor():
+        expr = parse_unary()
+        while match("STAR") or match("SLASH"):
+            operator = tokens[current - 1]
+            right = parse_unary()
+            expr = f"({operator} {expr} {right})"
+        return expr
+
+    def parse_unary():
+        if match("BANG") or match("MINUS"):
+            operator = tokens[current - 1]
+            right = parse_unary()
+            return f"({operator} {right})"
+        return parse_primary()
+
+    def parse_primary():
+        if match("FALSE"):
             return "false"
-        elif token.startswith("NIL"):
+        if match("TRUE"):
+            return "true"
+        if match("NIL"):
             return "nil"
-        else:
-            return token  # For other tokens, return as is
-
-
-    while  fst < token_len:
-        token=tokens[fst]
-        if token.startswith("TRUE"):parse_result.append("true")
-        elif token.startswith("FALSE"):parse_result.append("false")
-        elif token.startswith("NIL"):parse_result.append("nil")
-        elif token.startswith("NUMBER"):parse_result.append(float(token.split()[1]))
-        elif token.startswith("STRING"):parse_result.append(token.split('"')[1])
-        elif token.startswith("LEFT_PAREN"):
-            fst += 1  # Move past the LEFT_PAREN token
-            l = []  # List to store tokens inside the parentheses
-            nested_count = 1  # Track nested parentheses
-
-            while fst < token_len and nested_count > 0:
-                current_token = tokens[fst]
-
-                if current_token.startswith("LEFT_PAREN"):
-                    # Recursively parse the inner group
-                    fst += 1
-                    group_tokens = []
-                    while fst < token_len and not tokens[fst].startswith("RIGHT_PAREN"):
-                        group_tokens.append(tokens[fst])
-                        fst += 1
-
-                    if fst < token_len and tokens[fst].startswith("RIGHT_PAREN"):
-                        value = f"(group {' '.join([extract_value(t) for t in group_tokens])})"
-                        l.append(value)  # Add the grouped value as a token
-                        nested_count -= 1
-                    else:
-                        parser_errors = True
-                        print("Error: Unterminated parentheses")
-                        break
-
-                elif current_token.startswith("RIGHT_PAREN"):
-                    nested_count -= 1  # Reduce the nesting level
-                    if nested_count > 0:
-                        l.append(current_token)  # Add the RIGHT_PAREN if it's not the closing one for the current group
-                else:
-                    l.append(extract_value(current_token))  # Use extract_value to get the actual token value
-
-                fst += 1  # Move to the next token
-
-            if nested_count == 0:
-                # Successfully closed all nested parentheses
-                value = f"(group {' '.join(l)})"
-                parse_result.append(value)  # Append the grouped result
-            else:
-                # If we exit the loop with unbalanced parentheses
+        if match("NUMBER"):
+            return tokens[current - 1].split()[2]
+        if match("STRING"):
+            return tokens[current - 1].split()[2]
+        if match("IDENTIFIER"):
+            return tokens[current - 1]
+        if match("LEFT_PAREN"):
+            expr = parse_expression()
+            if not match("RIGHT_PAREN"):
+                nonlocal parser_errors
                 parser_errors = True
-                print("Error: Unterminated nested parentheses")
-
-            fst += 1  # Move past the last RIGHT_PAREN
-
-
+                return "[Error: Expected ')']"
+            return f"(group {expr})"
         
-            
+        parser_errors = True
+        return "[Error: Expected expression]"
 
-                
-
-
-        fst+=1
-    return parse_result,parser_errors
-
-
+    expr = parse_expression()
+    parse_result.append(expr)
+    return parse_result, parser_errors
 
 if __name__ == "__main__":
     main()
