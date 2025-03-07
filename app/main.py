@@ -9,14 +9,17 @@ def main():
 
     command = sys.argv[1]
     filename = sys.argv[2]
-
+    
+    # Read the file contents
     try:
         with open(filename, "r") as file:
             file_contents = file.read()
+    
     except FileNotFoundError:
         print(f"Error: File '{filename}' not found.", file=sys.stderr)
         exit(1)
-    
+
+    # Tokenize the file contents
     if command == "tokenize":
         tokens, lexical_errors = tokenize(file_contents)
         for token in tokens:
@@ -28,14 +31,14 @@ def main():
              exit(65)
         else:
              exit(0)
+    # Parse the file contents
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
+        if lexical_errors:
+            exit(65)
         parse_result, parser_errors = parse(tokens)
         for result in parse_result:
-            if result.startswith("[Error"):
-                print(result, file=sys.stderr)
-            else:
-                print(result)       
+            print(result)
         if parser_errors:
             exit(65)
         else:
@@ -80,6 +83,9 @@ def tokenize(file_contents):
                     pointer += 1
                 case "*":
                     tokens.append("STAR * null")
+                    pointer += 1
+                case ".":
+                    tokens.append("DOT . null")
                     pointer += 1
                 case "=":
                     if pointer + 1 < len(file_contents) and file_contents[pointer + 1] == "=":
@@ -139,29 +145,21 @@ def tokenize(file_contents):
                         tokens.append(error_message)
                         lexical_errors = True
                         pointer += 1
-                case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9"|".": 
+                case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9": 
                     start = pointer
-                    if pointer+1< len(file_contents) and ((file_contents[pointer] in "0123456789")):
-                        while pointer< len(file_contents) and (file_contents[pointer] in "0123456789"):
-                            pointer += 1
-
-                        if pointer< len(file_contents) and file_contents[pointer] == ".":
-                            pointer += 1
-                            while pointer < len(file_contents) and file_contents[pointer] in "0123456789":
-                                pointer += 1
-                        value = file_contents[start:pointer]
-                        tokens.append(f"NUMBER {value} {float(value)}")
-
-                    elif pointer+1< len(file_contents) and (file_contents[pointer] == "."  and file_contents[pointer + 1] in "0123456789"): 
-                        if pointer + 1 < len(file_contents) and file_contents[pointer + 1] in "0123456789":
-                            pointer += 1
-                            while pointer < len(file_contents) and file_contents[pointer] in "0123456789":
-                                pointer += 1
-                        value = file_contents[start:pointer]
-                        tokens.append(f"NUMBER {value} {float(value)}")
-                    else:
-                        tokens.append("DOT . null")
+                    while pointer + 1 < len(file_contents) and file_contents[pointer+1] in "0123456789":
                         pointer += 1
+                    if pointer + 1 < len(file_contents) and file_contents[pointer+1] == ".":
+                        if pointer + 2 < len(file_contents) and file_contents[pointer+2] in "0123456789":
+                            pointer += 2
+                            while pointer + 1 < len(file_contents) and file_contents[pointer+1] in "0123456789":
+                                pointer += 1
+                        while pointer + 1 < len(file_contents) and file_contents[pointer+1] in "0123456789":
+                            pointer += 1
+                    value = file_contents[start:pointer+1]
+                    tokens.append(f"NUMBER {value} {float(value)}")
+                    pointer += 1
+
                 case "a"|"b"|"c"|"d"|"e"|"f"|"g"|"h"|"i"|"j"|"k"|"l"|"m"|"n"|"o"|"p"|"q"|"r"|"s"|"t"|"u"|"v"|"w"|"x"|"y"|"z"|"A"|"B"|"C"|"D"|"E"|"F"|"G"|"H"|"I"|"J"|"K"|"L"|"M"|"N"|"O"|"P"|"Q"|"R"|"S"|"T"|"U"|"V"|"W"|"X"|"Y"|"Z"|"_"|"0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
                     start = pointer
                     while pointer + 1 < len(file_contents) and file_contents[pointer + 1] in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789":
@@ -183,99 +181,166 @@ def tokenize(file_contents):
         
         return tokens, lexical_errors
 
-def parse(tokens):
-    current = 0
-    parser_errors = False
-    parse_result = []
 
-    def match(expected):
-        nonlocal current, parser_errors
-        if current >= len(tokens) or tokens[current].startswith("EOF"):
-            parser_errors = True
-            parse_result.append("[Error: Expected expression]")
-            return False
-        if tokens[current].startswith(expected):
-            current += 1
-            return True
+def parse(tokens):
+    current=0
+    parse_result=[]
+    # line_number=1
+    parser_errors=False
+
+    # Helper Funtions
+    def match(*types) -> bool:
+        for type in types:
+            if check(type):
+                advance()
+                return True
         return False
 
-    def parse_expression():
-        return parse_equality()
+    def isAtEnd() -> bool:
+        if (peek().startswith("EOF")):
+            return True
+        return False
+                
+    def peek():
+        return tokens[current]
 
-    def parse_equality():
-        expr = parse_comparison()
-        while match("BANG_EQUAL") or match("EQUAL_EQUAL"):
-            operator = tokens[current - 1].split()[1]
-            right = parse_comparison()
-            expr = f"({operator} {expr} {right})"
-        return expr
+    def previous():
+        return tokens[current-1]
 
-    def parse_comparison():
-        expr = parse_term()
-        while match("GREATER") or match("GREATER_EQUAL") or match("LESS") or match("LESS_EQUAL"):
-            operator = tokens[current - 1].split()[1]
-            right = parse_term()
-            expr = f"({operator} {expr} {right})"
-        return expr
+    def advance():
+        nonlocal current
+        if not isAtEnd():
+            current+=1
+        return previous()
 
-    def parse_term():
-        expr = parse_factor()
-        while match("MINUS") or match("PLUS"):
-            operator = tokens[current - 1].split()[1]
-            right = parse_factor()
-            expr = f"({operator} {expr} {right})"
-        return expr
-
-    def parse_factor():
-        expr = parse_unary()
-        while match("STAR") or match("SLASH"):
-            operator = tokens[current - 1].split()[1]
-            right = parse_unary()
-            expr = f"({operator} {expr} {right})"
-        return expr
-
-    def parse_unary():
-        if match("BANG") or match("MINUS"):
-            operator = tokens[current - 1].split()[1]
-            right = parse_unary()
-            return f"({operator} {right})"
-        return parse_primary()
-
-    def parse_primary():
-        nonlocal parser_errors
-        if match("FALSE"):
-            return "false"
-        if match("TRUE"):
-            return "true"
-        if match("NIL"):
-            return "nil"
-        if match("NUMBER"):
-            return tokens[current - 1].split()[2]
-        if match("STRING"):
-            q=tokens[current - 1].split('"',1)
-            return f'{q[1].split('"', 1)[0]}'
-        if match("IDENTIFIER"):
-            return tokens[current - 1].split()[1]
-        if match("LEFT_PAREN"):
-            expr = parse_expression()
-            if not match("RIGHT_PAREN"):
-                parser_errors = True
-                parse_result.append("[Error: Expected ')']")
-                return None
-            return f"(group {expr})"
+    def check(type) -> bool:
+        if isAtEnd():
+            return False
+        return peek().startswith(type)
         
-        parser_errors = True
-        parse_result.append("[Error: Expected expression]")
+    # Error Handling
+    def error(token, message):
+        # nonlocal parser_errors
+        # parser_errors = True
+        if token.startswith("EOF"):
+            report(token, " at end", message)
+        else:
+            report(token, f" at '{token.split()[1]}'", message)
+
+    def report(token,where,message):
+        print(f"[line {token.split()[1]}] Error{where}: {message}", file=sys.stderr)
+        parser_errors=True 
+
+    def consume(type,message):
+        if check(type):
+            return advance()
+        error(peek(),message)
+
+    # Grammar Rules
+    def Binary(left,operator,right):
+        return f"({operator} {left} {right})"
+
+    def Unary(operator,right):
+        return f"({operator} {right})"
+
+    def Literal(value):
+        return f"{value}"
+
+    def grouping(expr):
+        return f"(group {expr})"
+
+    def expression():
+        expr=equality()
+        return expr
+        # try:
+        #     expr=equality()
+        #     return expr
+        # except Exception as e:
+        #     print(f"Error in expression: {e}", file=sys.stderr)
+        #     return None
+    
+    def equality():
+        expr=comparison()
+        while match("BANG_EQUAL","EQUAL_EQUAL"):
+            operator=previous().split()[1]
+            right=comparison()
+            # if right is None:  
+            #     error(peek(), f"Missing right-hand operand for operator equali '{operator}'.")
+            #     return None
+            expr=Binary(expr,operator,right)
+        return expr
+
+    def comparison():
+        expr=term()
+        while match ("GREATER","GREATER_EQUAL","LESS","LESS_EQUAL"):
+            operator=previous().split()[1]
+            right=term()
+            # if right is None:  
+            #     error(peek(), f"Missing right-hand operand for operator comp '{operator}'.")
+            #     return None
+            expr=Binary(expr,operator,right)
+        return expr
+
+    def term ():
+        expr=factor()
+        while match("MINUS","PLUS"):
+            operator=previous().split()[1]
+            right=factor()
+            # if right is None:  
+            #     error(peek(), f"Missing right-hand operand for operator term'{operator}'.")
+            #     return None
+            expr=Binary(expr,operator,right)
+        return expr
+
+    def factor():
+        expr=unary()
+        while match("STAR","SLASH"):
+            operator=previous().split()[1]
+            right=unary()
+            # if right is None:  
+            #     return error(peek(), f"Missing right-hand operand for operator factor'{operator}'.")
+            #     return None
+            expr=Binary(expr,operator,right)
+        return expr
+
+    def unary():
+        if match("BANG","MINUS"):
+            operator=previous().split()[1]
+            right=unary()
+            # if right is None:  
+                # error(peek(), f"Missing right-hand operand for operator unary'{operator}'.")
+                # return None
+            return Unary(operator,right)
+        return primary()
+
+    def primary():
+        try:
+            if match("FALSE"):
+                return Literal("false")
+            if match("TRUE"):
+                return Literal("true")
+            if match("NIL"):
+                return Literal("nil")
+            if match("NUMBER"):
+                return Literal(previous().split()[2])
+            if match("STRING"):
+                return Literal(previous().split('"',2)[1])
+            if match("LEFT_PAREN"):
+                expr=expression()
+                consume("RIGHT_PAREN","Expected ')' after expression.")
+                return grouping(expr)
+            error(peek(), "Expected expression.")
+
+        except Exception as e:
+            print(f"Error in primary: {e}", file=sys.stderr)
+            return None
+
+    parse_result.append(expression())
+    try:
+        return parse_result, parser_errors
+    except Exception as e:
+        print(f"Error in parse: {e}", file=sys.stderr)
         return None
-
-    expr = parse_expression()
-    if expr:
-        parse_result.append(expr)
-    elif not parse_result:  # Only add if no error message has been added yet
-        parser_errors = True
-        parse_result.append("[Error: Expected expression]")
-
-    return parse_result, parser_errors
-
 if __name__ == "__main__":
     main()
+
