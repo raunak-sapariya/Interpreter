@@ -4,7 +4,7 @@ def main():
     print("Logs from your program will appear here!", file=sys.stderr)
 
     if len(sys.argv) < 3:
-        print("Usage: ./your_program.sh tokenize/parse <filename>", file=sys.stderr)
+        print("Usage: ./your_program.sh tokenize/parse/evaluate <filename>", file=sys.stderr)
         exit(1)
 
     command = sys.argv[1]
@@ -31,6 +31,7 @@ def main():
              exit(65)
         else:
              exit(0)
+
     # Parse the file contents
     elif command == "parse":
         tokens, lexical_errors = tokenize(file_contents)
@@ -43,9 +44,26 @@ def main():
             exit(65)
         else:
             exit(0)
+
+    elif command == "evaluate":
+        tokens, lexical_errors = tokenize(file_contents)
+        if lexical_errors:
+            exit(65)
+        parse_result, parser_errors = parse(tokens)
+        if parser_errors:
+            exit(65)
+
+        evaluate(parse_result)
+
+
+
+
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         exit(1)
+
+ 
+
 
 def tokenize(file_contents):
         tokens = []  
@@ -341,6 +359,80 @@ def parse(tokens):
     except Exception as e:
         print(f"Error in parse: {e}", file=sys.stderr)
         return None
+    
+
+    
+def evaluate(parse_result):
+
+    def literal(value):
+        return value
+    
+    def binary(left, operator, right):
+        if operator == "+":
+            return left + right
+        elif operator == "-":
+            return left - right
+        elif operator == "*":
+            return left * right
+        elif operator == "/":
+            return left / right
+        elif operator == "==":
+            return left == right
+        elif operator == "!=":
+            return left != right
+        elif operator == ">":   
+            return left > right
+        elif operator == "<":
+            return left < right
+        elif operator == ">=":
+            return left >= right
+        elif operator == "<=":
+            return left <= right
+        else:
+            print(f"Unknown operator: {operator}", file=sys.stderr)
+            exit(1)
+
+    def unary(operator, right):
+        if operator == "-":
+            return -right
+        elif operator == "!":
+            return not right
+        else:
+            print(f"Unknown operator: {operator}", file=sys.stderr)
+            exit(1)
+
+    def evaluate_expr(expr):
+        if isinstance(expr, float):
+            return expr
+        elif isinstance(expr, str):
+            return literal(expr)
+        elif isinstance(expr, tuple):
+            operator = expr[0]
+            left = evaluate_expr(expr[1])
+            if len(expr) == 3:
+                right = evaluate_expr(expr[2])
+                return binary(left, operator, right)
+            else:
+                return unary(operator, left)
+        else:
+            print(f"Unknown expression type: {expr}", file=sys.stderr)
+            exit(1)
+
+    for expr in parse_result:
+        if expr is not None:
+            result = evaluate_expr(expr)
+            print(result)
+        else:
+            print("Error: Unable to evaluate expression.", file=sys.stderr)
+            exit(1)
+
+    exit(0)
+
+
+    
+
+    
+
 if __name__ == "__main__":
     main()
 
