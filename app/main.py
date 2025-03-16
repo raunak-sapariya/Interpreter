@@ -203,7 +203,6 @@ def tokenize(file_contents):
 def parse(tokens):
     current=0
     parse_result=[]
-    # line_number=1
     parser_errors=False
 
     # Helper Funtions
