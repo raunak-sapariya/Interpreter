@@ -44,6 +44,7 @@ def main():
             print(result)
         exit(0)
 
+
     elif command == "evaluate":
         tokens, lexical_errors = tokenize(file_contents)
         if lexical_errors:
@@ -310,8 +311,14 @@ def parse(tokens):
                 return Literal(previous().split('"',2)[1])
             if match("LEFT_PAREN"):
                 expr=expression()
-                consume("RIGHT_PAREN","Expected ')' after expression.")
+                closing= consume("RIGHT_PAREN","Expected ')' after expression.")
+                if closing is None:
+                    return None
                 return grouping(expr)
+            
+            error(peek(), "Unexpected expression")
+            return None
+            
         except Exception as e:
             print(f"Error in primary: {e}", file=sys.stderr)
             return None
