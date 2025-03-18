@@ -38,12 +38,11 @@ def main():
         if lexical_errors:
             exit(65)
         parse_result, parser_errors = parse(tokens)
-        for result in parse_result:
-            print(result)
         if parser_errors:
             exit(65)
-        else:
-            exit(0)
+        for result in parse_result:
+            print(result)
+        exit(0)
 
     elif command == "evaluate":
         tokens, lexical_errors = tokenize(file_contents)
