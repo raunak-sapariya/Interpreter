@@ -205,14 +205,43 @@ def parse(tokens):
     parse_result=[]
     parser_errors=False
 
-    # Helper Funtions
+    # Grammar Rules
+    def expression():
+        expr=equality()
+        return expr
+    
+    def equality():
+        expr=comparison()
+        while match("BANG_EQUAL","EQUAL_EQUAL"):
+            operator=previous().split()[1]
+            right=comparison()
+            expr=Binary(expr,operator,right)
+        return expr
+    
     def match(*types) -> bool:
         for type in types:
             if check(type):
                 advance()
                 return True
         return False
-
+    
+    # Consumes the token if it matches the type else raises an error
+    def consume(type,message):
+        if check(type):
+            return advance()
+        error(peek(),message)
+    
+    def check(type) -> bool:
+        if isAtEnd():
+            return False
+        return peek().startswith(type)
+    
+    def advance():
+        nonlocal current
+        if not isAtEnd():
+            current+=1
+        return previous()
+    
     def isAtEnd() -> bool:
         if (peek().startswith("EOF")):
             return True
@@ -223,113 +252,50 @@ def parse(tokens):
 
     def previous():
         return tokens[current-1]
-
-    def advance():
-        nonlocal current
-        if not isAtEnd():
-            current+=1
-        return previous()
-
-    def check(type) -> bool:
-        if isAtEnd():
-            return False
-        return peek().startswith(type)
-        
+    
     # Error Handling
+    def report(token,where,message):
+        print(f"[line {token.split()[1]}] Error{where}: {message}", file=sys.stderr)
+        return None
+    
+    # Error Handling 
     def error(token, message):
-        # nonlocal parser_errors
-        # parser_errors = True
         if token.startswith("EOF"):
             report(token, " at end", message)
         else:
             report(token, f" at '{token.split()[1]}'", message)
-
-    def report(token,where,message):
-        print(f"[line {token.split()[1]}] Error{where}: {message}", file=sys.stderr)
-        parser_errors=True 
-
-    def consume(type,message):
-        if check(type):
-            return advance()
-        error(peek(),message)
-
-    # Grammar Rules
-    def Binary(left,operator,right):
-        return f"({operator} {left} {right})"
-
-    def Unary(operator,right):
-        return f"({operator} {right})"
-
-    def Literal(value):
-        return f"{value}"
-
-    def grouping(expr):
-        return f"(group {expr})"
-
-    def expression():
-        expr=equality()
-        return expr
-        # try:
-        #     expr=equality()
-        #     return expr
-        # except Exception as e:
-        #     print(f"Error in expression: {e}", file=sys.stderr)
-        #     return None
     
-    def equality():
-        expr=comparison()
-        while match("BANG_EQUAL","EQUAL_EQUAL"):
-            operator=previous().split()[1]
-            right=comparison()
-            # if right is None:  
-            #     error(peek(), f"Missing right-hand operand for operator equali '{operator}'.")
-            #     return None
-            expr=Binary(expr,operator,right)
-        return expr
-
     def comparison():
         expr=term()
         while match ("GREATER","GREATER_EQUAL","LESS","LESS_EQUAL"):
             operator=previous().split()[1]
             right=term()
-            # if right is None:  
-            #     error(peek(), f"Missing right-hand operand for operator comp '{operator}'.")
-            #     return None
             expr=Binary(expr,operator,right)
         return expr
-
+    
     def term ():
         expr=factor()
         while match("MINUS","PLUS"):
             operator=previous().split()[1]
             right=factor()
-            # if right is None:  
-            #     error(peek(), f"Missing right-hand operand for operator term'{operator}'.")
-            #     return None
             expr=Binary(expr,operator,right)
         return expr
-
+    
     def factor():
         expr=unary()
         while match("STAR","SLASH"):
             operator=previous().split()[1]
             right=unary()
-            # if right is None:  
-            #     return error(peek(), f"Missing right-hand operand for operator factor'{operator}'.")
-            #     return None
             expr=Binary(expr,operator,right)
         return expr
-
+    
     def unary():
         if match("BANG","MINUS"):
             operator=previous().split()[1]
             right=unary()
-            # if right is None:  
-                # error(peek(), f"Missing right-hand operand for operator unary'{operator}'.")
-                # return None
             return Unary(operator,right)
         return primary()
-
+    
     def primary():
         try:
             if match("FALSE"):
@@ -346,12 +312,24 @@ def parse(tokens):
                 expr=expression()
                 consume("RIGHT_PAREN","Expected ')' after expression.")
                 return grouping(expr)
-            error(peek(), "Expected expression.")
-
         except Exception as e:
             print(f"Error in primary: {e}", file=sys.stderr)
             return None
+    
+    
+    def Binary(left,operator,right):
+        return f"({operator} {left} {right})"
 
+    def Unary(operator,right):
+        return f"({operator} {right})"
+
+    def Literal(value):
+        return f"{value}"
+
+    def grouping(expr):
+        return f"(group {expr})"
+
+    
     parse_result.append(expression())
     try:
         return parse_result, parser_errors
