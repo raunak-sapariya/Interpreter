@@ -200,102 +200,239 @@ def tokenize(file_contents):
         return tokens, lexical_errors
 
 
+# def parse(tokens):
+#     current=0
+#     parse_result=[]
+#     parser_errors=False
+
+#     # Grammar Rules
+#     def expression():
+#         expr=equality()
+#         return expr
+    
+#     def equality():
+#         expr=comparison()
+#         while match("BANG_EQUAL","EQUAL_EQUAL"):
+#             operator=previous().split()[1]
+#             right=comparison()
+#             expr=Binary(expr,operator,right)
+#         return expr
+    
+#     def match(*types) -> bool:
+#         for type in types:
+#             if check(type):
+#                 advance()
+#                 return True
+#         return False
+    
+#     # Consumes the token if it matches the type else raises an error
+#     def consume(type,message):
+#         if check(type):
+#             return advance()
+#         error(peek(),message)
+#         return None
+    
+#     def check(type) -> bool:
+#         if isAtEnd():
+#             return False
+#         return peek().startswith(type)
+    
+#     def advance():
+#         nonlocal current
+#         if not isAtEnd():
+#             current+=1
+#         return previous()
+    
+#     def isAtEnd() -> bool:
+#         return peek().startswith("EOF")
+                
+#     def peek():
+#         return tokens[current]
+
+#     def previous():
+#         return tokens[current-1]
+    
+#     # Error Handling
+#     def report(token,where,message):
+#         print(f"[line {token.split()[1]}] Error{where}: {message}", file=sys.stderr)
+    
+#     # Error Handling 
+#     def error(token, message):
+#         nonlocal parser_errors
+#         parser_errors=True
+#         if token.startswith("EOF"):
+#             report(token, " at end", message)
+#         else:
+#             report(token, f" at '{token.split()[1]}'", message)
+#         return None
+    
+#     def comparison():
+#         expr=term()
+#         while match ("GREATER","GREATER_EQUAL","LESS","LESS_EQUAL"):
+#             operator=previous().split()[1]
+#             right=term()
+#             expr=Binary(expr,operator,right)
+#         return expr
+    
+#     def term ():
+#         expr=factor()
+#         while match("MINUS","PLUS"):
+#             operator=previous().split()[1]
+#             right=factor()
+#             expr=Binary(expr,operator,right)
+#         return expr
+    
+#     def factor():
+#         expr=unary()
+#         while match("STAR","SLASH"):
+#             operator=previous().split()[1]
+#             right=unary()
+#             expr=Binary(expr,operator,right)
+#         return expr
+    
+#     def unary():
+#         if match("BANG","MINUS"):
+#             operator=previous().split()[1]
+#             right=unary()
+#             return Unary(operator,right)
+#         return primary()
+    
+#     def primary():
+#         try:
+#             if match("FALSE"):
+#                 return Literal("false")
+#             if match("TRUE"):
+#                 return Literal("true")
+#             if match("NIL"):
+#                 return Literal("nil")
+#             if match("NUMBER"):
+#                 return Literal(previous().split()[2])
+#             if match("STRING"):
+#                 return Literal(previous().split('"',2)[1])
+#             if match("LEFT_PAREN"):
+#                 expr=expression()
+#                 consume("RIGHT_PAREN","Expected ')' after expression.")
+#                 return grouping(expr)
+#         except Exception as e:
+#             print(f"Error in primary: {e}", file=sys.stderr)
+#             return None
+    
+    
+#     def Binary(left,operator,right):
+#         return f"({operator} {left} {right})"
+
+#     def Unary(operator,right):
+#         return f"({operator} {right})"
+
+#     def Literal(value):
+#         return f"{value}"
+
+#     def grouping(expr):
+#         return f"(group {expr})"
+
+    
+#     parse_result.append(expression())
+#     if parser_errors :
+#         return parse_result, True
+#     return parse_result, False
+    
 def parse(tokens):
-    current=0
-    parse_result=[]
-    parser_errors=False
+    current = 0
+    parse_result = []
+    parser_errors = False
 
     # Grammar Rules
     def expression():
-        expr=equality()
+        expr = equality()
         return expr
-    
+
     def equality():
-        expr=comparison()
-        while match("BANG_EQUAL","EQUAL_EQUAL"):
-            operator=previous().split()[1]
-            right=comparison()
-            expr=Binary(expr,operator,right)
+        expr = comparison()
+        while match("BANG_EQUAL", "EQUAL_EQUAL"):
+            operator = previous().split()[1]
+            right = comparison()
+            expr = Binary(expr, operator, right)
         return expr
-    
+
     def match(*types) -> bool:
         for type in types:
             if check(type):
                 advance()
                 return True
         return False
-    
+
     # Consumes the token if it matches the type else raises an error
-    def consume(type,message):
+    def consume(type, message):
         if check(type):
             return advance()
-        error(peek(),message)
-    
+        error(peek(), message)
+        return None  # To let the parser continue gracefully
+
     def check(type) -> bool:
         if isAtEnd():
             return False
         return peek().startswith(type)
-    
+
     def advance():
         nonlocal current
         if not isAtEnd():
-            current+=1
+            current += 1
         return previous()
-    
+
     def isAtEnd() -> bool:
-        if (peek().startswith("EOF")):
-            return True
-        return False
-                
+        return peek().startswith("EOF")
+
     def peek():
         return tokens[current]
 
     def previous():
-        return tokens[current-1]
-    
+        return tokens[current - 1]
+
     # Error Handling
-    def report(token,where,message):
+    def report(token, where, message):
         print(f"[line {token.split()[1]}] Error{where}: {message}", file=sys.stderr)
-        return None
-    
-    # Error Handling 
+
+    # Modified error function that sets parser_errors to True
     def error(token, message):
+        nonlocal parser_errors
+        parser_errors = True
         if token.startswith("EOF"):
             report(token, " at end", message)
         else:
             report(token, f" at '{token.split()[1]}'", message)
-    
+        return None
+
     def comparison():
-        expr=term()
-        while match ("GREATER","GREATER_EQUAL","LESS","LESS_EQUAL"):
-            operator=previous().split()[1]
-            right=term()
-            expr=Binary(expr,operator,right)
+        expr = term()
+        while match("GREATER", "GREATER_EQUAL", "LESS", "LESS_EQUAL"):
+            operator = previous().split()[1]
+            right = term()
+            expr = Binary(expr, operator, right)
         return expr
-    
-    def term ():
-        expr=factor()
-        while match("MINUS","PLUS"):
-            operator=previous().split()[1]
-            right=factor()
-            expr=Binary(expr,operator,right)
+
+    def term():
+        expr = factor()
+        while match("MINUS", "PLUS"):
+            operator = previous().split()[1]
+            right = factor()
+            expr = Binary(expr, operator, right)
         return expr
-    
+
     def factor():
-        expr=unary()
-        while match("STAR","SLASH"):
-            operator=previous().split()[1]
-            right=unary()
-            expr=Binary(expr,operator,right)
+        expr = unary()
+        while match("STAR", "SLASH"):
+            operator = previous().split()[1]
+            right = unary()
+            expr = Binary(expr, operator, right)
         return expr
-    
+
     def unary():
-        if match("BANG","MINUS"):
-            operator=previous().split()[1]
-            right=unary()
-            return Unary(operator,right)
+        if match("BANG", "MINUS"):
+            operator = previous().split()[1]
+            right = unary()
+            return Unary(operator, right)
         return primary()
-    
+
     def primary():
         try:
             if match("FALSE"):
@@ -307,20 +444,20 @@ def parse(tokens):
             if match("NUMBER"):
                 return Literal(previous().split()[2])
             if match("STRING"):
-                return Literal(previous().split('"',2)[1])
+                # Adjust string splitting to correctly capture the literal value.
+                return Literal(previous().split('"', 2)[1])
             if match("LEFT_PAREN"):
-                expr=expression()
-                consume("RIGHT_PAREN","Expected ')' after expression.")
+                expr = expression()
+                consume("RIGHT_PAREN", "Expected ')' after expression.")
                 return grouping(expr)
         except Exception as e:
             print(f"Error in primary: {e}", file=sys.stderr)
             return None
-    
-    
-    def Binary(left,operator,right):
+
+    def Binary(left, operator, right):
         return f"({operator} {left} {right})"
 
-    def Unary(operator,right):
+    def Unary(operator, right):
         return f"({operator} {right})"
 
     def Literal(value):
@@ -329,16 +466,15 @@ def parse(tokens):
     def grouping(expr):
         return f"(group {expr})"
 
-    
     parse_result.append(expression())
-    try:
-        return parse_result, parser_errors
-    except Exception as e:
-        print(f"Error in parse: {e}", file=sys.stderr)
-        return None
-    
+    # If there were parser errors, the tester expects exit code 65.
+    if parser_errors:
+        return parse_result, True
+    return parse_result, False
 
-    
+
+
+
 def evaluate(parse_result):
 
     def literal(value):
