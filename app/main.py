@@ -44,7 +44,7 @@ def main():
             print(result)
         exit(0)
 
-
+    # Evaluate the file contents
     elif command == "evaluate":
         tokens, lexical_errors = tokenize(file_contents)
         if lexical_errors:
@@ -306,9 +306,9 @@ def parse(tokens):
             if match("NIL"):
                 return Literal("nil")
             if match("NUMBER"):
-                return Literal(previous().split()[2])
+                return float(previous().split()[2])
             if match("STRING"):
-                return Literal(previous().split('"',2)[1])
+                return previous().split('"',2)[1]
             if match("LEFT_PAREN"):
                 expr=expression()
                 closing= consume("RIGHT_PAREN","Expected ')' after expression.")
@@ -336,7 +336,6 @@ def parse(tokens):
     def grouping(expr):
         return f"(group {expr})"
 
-    
     parse_result.append(expression())
     if parser_errors :
         return parse_result, True
@@ -345,57 +344,17 @@ def parse(tokens):
 
 
 def evaluate(parse_result):
-
-    def literal(value):
-        return value
     
-    def binary(left, operator, right):
-        if operator == "+":
-            return left + right
-        elif operator == "-":
-            return left - right
-        elif operator == "*":
-            return left * right
-        elif operator == "/":
-            return left / right
-        elif operator == "==":
-            return left == right
-        elif operator == "!=":
-            return left != right
-        elif operator == ">":   
-            return left > right
-        elif operator == "<":
-            return left < right
-        elif operator == ">=":
-            return left >= right
-        elif operator == "<=":
-            return left <= right
-        else:
-            print(f"Unknown operator: {operator}", file=sys.stderr)
-            exit(1)
-
-    def unary(operator, right):
-        if operator == "-":
-            return -right
-        elif operator == "!":
-            return not right
-        else:
-            print(f"Unknown operator: {operator}", file=sys.stderr)
-            exit(1)
-
     def evaluate_expr(expr):
-        if isinstance(expr, float):
-            return expr
-        elif isinstance(expr, str):
-            return literal(expr)
-        elif isinstance(expr, tuple):
-            operator = expr[0]
-            left = evaluate_expr(expr[1])
-            if len(expr) == 3:
-                right = evaluate_expr(expr[2])
-                return binary(left, operator, right)
+
+        if isinstance(expr, str):
+            return (expr)
+        elif isinstance(expr, float):
+            int_value = int(expr)
+            if int_value == expr:
+                return int_value
             else:
-                return unary(operator, left)
+                return expr
         else:
             print(f"Unknown expression type: {expr}", file=sys.stderr)
             exit(1)
