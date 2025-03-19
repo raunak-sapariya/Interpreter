@@ -1,203 +1,385 @@
 import sys
 
 def main():
+    print("Logs from your program will appear here!", file=sys.stderr)
+
     if len(sys.argv) < 3:
         print("Usage: ./your_program.sh tokenize/parse/evaluate <filename>", file=sys.stderr)
         exit(1)
-    
+
     command = sys.argv[1]
     filename = sys.argv[2]
     
+    # Read the file contents
     try:
         with open(filename, "r") as file:
-            source = file.read()
+            file_contents = file.read()
+    
     except FileNotFoundError:
         print(f"Error: File '{filename}' not found.", file=sys.stderr)
         exit(1)
-    
-    # Tokenize
-    tokens, lex_errors = tokenize(source)
-    if lex_errors:
-        exit(65)
-    
-    # Parse
-    ast, parse_errors = parse(tokens)
-    if parse_errors:
-        exit(65)
-    
-    if command == "parse":
-        # Convert AST to string for display.
-        for node in ast:
-            print(ast_to_string(node))
+
+    # Tokenize the file contents
+    if command == "tokenize":
+        tokens, lexical_errors = tokenize(file_contents)
+        for token in tokens:
+             if token.startswith("[line"):
+                 print(token, file=sys.stderr)
+             else:
+                 print(token)
+        if lexical_errors:
+             exit(65)
+        else:
+             exit(0)
+
+    # Parse the file contents
+    elif command == "parse":
+        tokens, lexical_errors = tokenize(file_contents)
+        if lexical_errors:
+            exit(65)
+        parse_result, parser_errors = parse(tokens)
+        if parser_errors:
+            exit(65)
+        for result in parse_result:
+            print(result)
         exit(0)
+
+    # Evaluate the file contents
     elif command == "evaluate":
-        result = evaluate(ast)
-        print(result)
-        exit(0)
+        tokens, lexical_errors = tokenize(file_contents)
+        if lexical_errors:
+            exit(65)
+        parse_result, parser_errors = parse(tokens)
+        if parser_errors:
+            exit(65)
+
+        evaluate(parse_result)
+
+
+
+
     else:
         print(f"Unknown command: {command}", file=sys.stderr)
         exit(1)
 
-#########################
-# Tokenizer
-#########################
-def tokenize(source):
-    tokens = []
-    lex_errors = False
-    i = 0
-    line_number = 1
+ 
 
-    while i < len(source):
-        c = source[i]
-        if c == '(':
-            tokens.append("LEFT_PAREN ( null")
-            i += 1
-        elif c == ')':
-            tokens.append("RIGHT_PAREN ) null")
-            i += 1
-        elif c == '"':
-            # Start of string literal.
-            start = i + 1
-            i += 1
-            while i < len(source) and source[i] != '"':
-                i += 1
-            if i < len(source) and source[i] == '"':
-                value = source[start:i]
-                # Token format: STRING "value" value
-                tokens.append(f'STRING "{value}" {value}')
-                i += 1
-            else:
-                tokens.append(f"[line {line_number}] Error: Unterminated string.")
-                lex_errors = True
-        elif c.isdigit():
-            # For simplicity, we assume a number is a sequence of digits with an optional dot.
-            start = i
-            while i < len(source) and source[i].isdigit():
-                i += 1
-            if i < len(source) and source[i] == '.':
-                i += 1
-                while i < len(source) and source[i].isdigit():
-                    i += 1
-            value = source[start:i]
-            tokens.append(f"NUMBER {value} {float(value)}")
-        elif c in " \t":
-            i += 1
-        elif c == '\n':
-            line_number += 1
-            i += 1
-        elif source.startswith("true", i):
-            tokens.append("TRUE true null")
-            i += 4
-        elif source.startswith("false", i):
-            tokens.append("FALSE false null")
-            i += 5
-        else:
-            # Ignore any unrecognized character for simplicity.
-            i += 1
 
-    tokens.append("EOF  null")
-    return tokens, lex_errors
+def tokenize(file_contents):
+        tokens = []  
+        line_number = 1
+        lexical_errors = False
+        pointer = 0
 
-#########################
-# Parser
-#########################
-def parse(tokens):
-    current = 0
-    ast = []
-    parse_errors = False
+        while pointer < len(file_contents):
+            char = file_contents[pointer]        
 
-    def expression():
-        return primary()
+            match char:
+                case "(":
+                    tokens.append("LEFT_PAREN ( null")
+                    pointer += 1
+                case ")":
+                    tokens.append("RIGHT_PAREN ) null")
+                    pointer += 1
+                case "{":
+                    tokens.append("LEFT_BRACE { null")
+                    pointer += 1
+                case "}":
+                    tokens.append("RIGHT_BRACE } null")
+                    pointer += 1
+                case ",":
+                    tokens.append("COMMA , null")
+                    pointer += 1
+                case "-":
+                    tokens.append("MINUS - null")
+                    pointer += 1
+                case "+":
+                    tokens.append("PLUS + null")
+                    pointer += 1
+                case ";":
+                    tokens.append("SEMICOLON ; null")
+                    pointer += 1
+                case "*":
+                    tokens.append("STAR * null")
+                    pointer += 1
+                case ".":
+                    tokens.append("DOT . null")
+                    pointer += 1
+                case "=":
+                    if pointer + 1 < len(file_contents) and file_contents[pointer + 1] == "=":
+                        tokens.append("EQUAL_EQUAL == null")
+                        pointer += 2
+                    else:
+                        tokens.append("EQUAL = null")
+                        pointer += 1
+                case "!":
+                    if pointer + 1 < len(file_contents) and file_contents[pointer + 1] == "=":
+                        tokens.append("BANG_EQUAL != null")
+                        pointer += 2
+                    else:
+                        tokens.append("BANG ! null")
+                        pointer += 1
+                case "<":
+                    if pointer + 1 < len(file_contents) and file_contents[pointer + 1] == "=":
+                        tokens.append("LESS_EQUAL <= null")
+                        pointer += 2
+                    else:
+                        tokens.append("LESS < null")
+                        pointer += 1
+                case ">": 
+                    if pointer + 1 < len(file_contents) and file_contents[pointer + 1] == "=":
+                        tokens.append("GREATER_EQUAL >= null")
+                        pointer += 2
+                    else:
+                        tokens.append("GREATER > null")
+                        pointer += 1
+                case "/":
+                    if pointer + 1 < len(file_contents) and (file_contents[pointer + 1] == "/" or file_contents[pointer + 1] == "*"):
+                        if file_contents[pointer + 1] == "/":
+                            while pointer < len(file_contents) and file_contents[pointer] != "\n":
+                                pointer += 1
+                        elif file_contents[pointer + 1] == "*":
+                            while pointer < len(file_contents) and not (file_contents[pointer] == "*" and file_contents[pointer + 1] == "/"):
+                                pointer += 1 
+                            pointer += 2
+                    else:
+                        tokens.append("SLASH / null")
+                        pointer += 1
+                case " "|"\t":
+                    pointer += 1
+                case "\n":
+                    pointer += 1
+                    line_number += 1
+                case '"':
+                    start = pointer
+                    while pointer + 1 < len(file_contents) and file_contents[pointer + 1] != '"':
+                        pointer += 1
+                    if pointer + 1 < len(file_contents) and file_contents[pointer + 1] == '"':
+                        value = file_contents[start + 1:pointer + 1]
+                        tokens.append(f'STRING "{value}" {value}')
+                        pointer += 2
+                    else:
+                        error_message=(f'[line {line_number}] Error: Unterminated string.')
+                        tokens.append(error_message)
+                        lexical_errors = True
+                        pointer += 1
+                case "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9": 
+                    start = pointer
+                    while pointer + 1 < len(file_contents) and file_contents[pointer+1] in "0123456789":
+                        pointer += 1
+                    if pointer + 1 < len(file_contents) and file_contents[pointer+1] == ".":
+                        if pointer + 2 < len(file_contents) and file_contents[pointer+2] in "0123456789":
+                            pointer += 2
+                            while pointer + 1 < len(file_contents) and file_contents[pointer+1] in "0123456789":
+                                pointer += 1
+                        while pointer + 1 < len(file_contents) and file_contents[pointer+1] in "0123456789":
+                            pointer += 1
+                    value = file_contents[start:pointer+1]
+                    tokens.append(f"NUMBER {value} {float(value)}")
+                    pointer += 1
 
-    def primary():
-        nonlocal current, parse_errors
-        token = tokens[current]
-        # If token is a STRING literal, return its inner value.
-        if token.startswith("STRING"):
-            current += 1
-            # Token format: STRING "value" value
-            # We split by the quote character; index 1 is the inner value.
-            return token.split('"', 2)[1]
-        # If token is a NUMBER literal, return a float.
-        if token.startswith("NUMBER"):
-            current += 1
-            return float(token.split()[2])
-        # If token is a TRUE literal, return True.
-        if token.startswith("TRUE"):
-            current += 1
-            return True
-        # If token is a FALSE literal, return False.
-        if token.startswith("FALSE"):
-            current += 1
-            return False
-        if token.startswith("nil"):
-            current += 1
-            return None
-        # Grouping: if token is LEFT_PAREN.
-        if token.startswith("LEFT_PAREN"):
-            current += 1  # consume '('
-            expr = expression()
-            if not check("RIGHT_PAREN"):
-                error(peek(), "Expected ')' after expression.")
-                parse_errors = True
-                return None
-            current += 1  # consume ')'
-            return grouping(expr)
+                case "a"|"b"|"c"|"d"|"e"|"f"|"g"|"h"|"i"|"j"|"k"|"l"|"m"|"n"|"o"|"p"|"q"|"r"|"s"|"t"|"u"|"v"|"w"|"x"|"y"|"z"|"A"|"B"|"C"|"D"|"E"|"F"|"G"|"H"|"I"|"J"|"K"|"L"|"M"|"N"|"O"|"P"|"Q"|"R"|"S"|"T"|"U"|"V"|"W"|"X"|"Y"|"Z"|"_"|"0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9":
+                    start = pointer
+                    while pointer + 1 < len(file_contents) and file_contents[pointer + 1] in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789":
+                        pointer += 1
+                    value = file_contents[start:pointer + 1]
+                    Identifiers = ["and", "class", "else", "false", "for", "fun", "if", "nil", "or", "print", "return", "super", "this", "true", "var", "while"]
+                    if value in Identifiers:
+                        tokens.append(f"{value.upper()} {value} null")
+                    else:
+                        tokens.append(f"IDENTIFIER {value} null")
+                    pointer += 1              
+                case "$"|"#"|"@"|"%"|_:
+                    error_message=(f"[line {line_number}] Error: Unexpected character: {char}")
+                    tokens.append(error_message)
+                    lexical_errors = True
+                    pointer += 1 
+
+        tokens.append("EOF  null")
         
-        error(token, "Unexpected expression")
-        parse_errors = True
+        return tokens, lexical_errors
+
+
+def parse(tokens):
+    current=0
+    parse_result=[]
+    parser_errors=False
+
+    # Grammar Rules
+    def expression():
+        expr=equality()
+        return expr
+    
+    def equality():
+        expr=comparison()
+        while match("BANG_EQUAL","EQUAL_EQUAL"):
+            operator=previous().split()[1]
+            right=comparison()
+            expr=Binary(expr,operator,right)
+        return expr
+    
+    def match(*types) -> bool:
+        for type in types:
+            if check(type):
+                advance()
+                return True
+        return False
+    
+    # Consumes the token if it matches the type else raises an error
+    def consume(type,message):
+        if check(type):
+            return advance()
+        error(peek(),message)
         return None
-
-    def grouping(expr):
-        # Create a grouping node. When printing AST, this will show as (group <expr>).
-        return ("group", expr)
-
-    def check(token_type):
-        return tokens[current].startswith(token_type)
-
+    
+    def check(type) -> bool:
+        if isAtEnd():
+            return False
+        return peek().startswith(type)
+    
+    def advance():
+        nonlocal current
+        if not isAtEnd():
+            current+=1
+        return previous()
+    
+    def isAtEnd() -> bool:
+        return peek().startswith("EOF")
+                
     def peek():
         return tokens[current]
 
+    def previous():
+        return tokens[current-1]
+    
+    # Error Handling
+    def report(token,where,message):
+        print(f"[line {token.split()[1]}] Error{where}: {message}", file=sys.stderr)
+    
+    # Error Handling 
     def error(token, message):
-        print(f"[line {token.split()[1]}] Error: {message}", file=sys.stderr)
+        nonlocal parser_errors
+        parser_errors=True
+        if token.startswith("EOF"):
+            report(token, " at end", message)
+        else:
+            report(token, f" at '{token.split()[1]}'", message)
+        return None
+    
+    def comparison():
+        expr=term()
+        while match ("GREATER","GREATER_EQUAL","LESS","LESS_EQUAL"):
+            operator=previous().split()[1]
+            right=term()
+            expr=Binary(expr,operator,right)
+        return expr
+    
+    def term ():
+        expr=factor()
+        while match("MINUS","PLUS"):
+            operator=previous().split()[1]
+            right=factor()
+            expr=Binary(expr,operator,right)
+        return expr
+    
+    def factor():
+        expr=unary()
+        while match("STAR","SLASH"):
+            operator=previous().split()[1]
+            right=unary()
+            expr=Binary(expr,operator,right)
+        return expr
+    
+    def unary():
+        if match("BANG","MINUS"):
+            operator=previous().split()[1]
+            right=unary()
+            return Unary(operator,right)
+        return primary()
+    
+    def primary():
+        try:
+            if match("FALSE"):
+                return Literal("false")
+            if match("TRUE"):
+                return Literal("true")
+            if match("NIL"):
+                return Literal("nil")
+            if match("NUMBER"):
+                return float(previous().split()[2])
+            if match("STRING"):
+                return previous().split('"',2)[1]
+            if match("LEFT_PAREN"):
+                expr=expression()
+                closing= consume("RIGHT_PAREN","Expected ')' after expression.")
+                if closing is None:
+                    return None
+                return grouping(expr)
+            
+            error(peek(), "Unexpected expression")
+            return None
+            
+        except Exception as e:
+            print(f"Error in primary: {e}", file=sys.stderr)
+            return None
+    
+    
+    def Binary(left,operator,right):
+        return f"({operator} {left} {right})"
 
-    # Start parsing: for this example we parse one expression.
-    ast.append(expression())
-    return ast, parse_errors
+    def Unary(operator,right):
+        return f"({operator} {right})"
 
-# Helper to convert AST to a string for parse mode.
-def ast_to_string(node):
-    if isinstance(node, tuple) and node[0] == "group":
-        # Format as (group <inner>)
-        return f"(group {ast_to_string(node[1])})"
-    else:
-        return str(node)
+    def Literal(value):
+        return f"{value}"
 
-#########################
-# Evaluator
-#########################
-def evaluate(ast):
-    # Assume ast is a list with one expression.
-    return evaluate_expr(ast[0])
+    def grouping(expr):
+        return f"(group {expr})"
 
-def evaluate_expr(node):
-    if isinstance(node, tuple) and node[0] == "group":
-        # Unwrap grouping by evaluating its inner expression.
-        return evaluate_expr(node[1])
-    elif isinstance(node, float):
-        # If a float is actually an integer, convert it.
-        int_value = int(node)
-        if int_value == node:
-            return int_value
-        return node
-    elif isinstance(node, bool):
-        # Return booleans as lowercase strings (if required).
-        return str(node).lower()
-    elif isinstance(node, str):
-        return node
-    else:
-        print(f"Unknown expression type: {node}", file=sys.stderr)
-        exit(1)
+    parse_result.append(expression())
+    if parser_errors :
+        return parse_result, True
+    return parse_result, False
+    
+
+
+def evaluate(parse_result):
+    
+    def evaluate_expr(expr):
+
+        def grouping(expr):
+            return f"(group {expr})"
+
+        if isinstance(expr, str):
+            return (expr)
+        elif isinstance(expr, float):
+            int_value = int(expr)
+            if int_value == expr:
+                return int_value
+            else:
+                return expr
+        elif isinstance(expr, grouping):
+            return grouping(expr)
+            
+        else:
+            print(f"Unknown expression type: {expr}", file=sys.stderr)
+            exit(1)
+
+    for expr in parse_result:
+        if expr is not None:
+            result = evaluate_expr(expr)
+            print(result)
+        else:
+            print("Error: Unable to evaluate expression.", file=sys.stderr)
+            exit(1)
+
+    exit(0)
+
+
+    
+
+    
 
 if __name__ == "__main__":
     main()
+
