@@ -19,51 +19,41 @@ def main():
         print(f"Error: File '{filename}' not found.", file=sys.stderr)
         exit(1)
 
-    # Tokenize the file contents
-    if command == "tokenize":
-        tokens, lexical_errors = tokenize(file_contents)
-        for token in tokens:
-             if token.startswith("[line"):
-                 print(token, file=sys.stderr)
-             else:
-                 print(token)
-        if lexical_errors:
-             exit(65)
-        else:
-             exit(0)
 
-    # Parse the file contents
-    elif command == "parse":
-        tokens, lexical_errors = tokenize(file_contents)
-        if lexical_errors:
-            exit(65)
-        parse_result, parser_errors = parse(tokens)
-        if parser_errors:
-            exit(65)
-        for result in parse_result:
-            print(ast_to_string(result))
+    # Tokenize the file contents
+    tokens, lex_errors = tokenize(file_contents)
+    if lex_errors:
+        exit(65)
+
+    if command == "tokenize":
+        for token in tokens:
+            if token.startswith("[line"):
+                print(token, file=sys.stderr)
+            else:
+                print(token)
         exit(0)
 
-    # Evaluate the file contents
+    # Parse the tokens
+    ast, parser_errors = parse(tokens)
+    if parser_errors:
+        exit(65)
+
+    if command == "parse":
+        # Print the AST using the ast_to_string function
+        for node in ast:
+            print(ast_to_string(node))
+        exit(0)
+
+    # Evaluate the AST
     elif command == "evaluate":
-        tokens, lexical_errors = tokenize(file_contents)
-        if lexical_errors:
-            exit(65)
-        parse_result, parser_errors = parse(tokens)
-        if parser_errors:
-            exit(65)
+        result = evaluate(ast)
+        if result is not None:
+            print(result)
+        exit(0)
 
-        evaluate(parse_result)
-
-
-
-
-    else:
-        print(f"Unknown command: {command}", file=sys.stderr)
-        exit(1)
-
+    print(f"Unknown command: {command}", file=sys.stderr)
+    exit(1)
  
-
 
 def tokenize(file_contents):
         tokens = []  
@@ -323,15 +313,15 @@ def parse(tokens):
             print(f"Error in primary: {e}", file=sys.stderr)
             return None
     
-    
+    # AST Node 
     def Binary(left,operator,right):
-        return f"({operator} {left} {right})"
+        return ("binary", operator, left, right)
 
     def Unary(operator,right):
-        return f"({operator} {right})"
+        return ("unary", operator, right)
 
     def Literal(value):
-        return f"{value}"
+        return ("literal", value)
 
     def grouping(expr):
         return ("group", expr)
@@ -380,12 +370,24 @@ def evaluate(parse_result):
 
     
 
-#Helper function
+# Helper function
 def ast_to_string(node):
-    if isinstance(node, tuple) and node[0] == "group":
-        return f"(group {ast_to_string(node[1])})"
+    if isinstance(node, tuple) :
+        tag = node[0]
+        if tag == "group":
+            return f"(group {ast_to_string(node[1])})"
+        elif tag == "binary":
+            return f"({node[1]} {ast_to_string(node[2])} {ast_to_string(node[3])})"
+        elif tag == "unary":
+            return f"({node[1]} {ast_to_string(node[2])})"
+        elif tag == "literal":
+            return str(node[1])
+        else:
+            return str(node)
     else:
         return str(node)
+        
+
     
 
 if __name__ == "__main__":
