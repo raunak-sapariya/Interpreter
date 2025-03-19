@@ -41,7 +41,7 @@ def main():
         if parser_errors:
             exit(65)
         for result in parse_result:
-            print(result)
+            print(ast_to_string(result))
         exit(0)
 
     # Evaluate the file contents
@@ -334,8 +334,8 @@ def parse(tokens):
         return f"{value}"
 
     def grouping(expr):
-        return f"(group {expr})"
-
+        return ("group", expr)
+    
     parse_result.append(expression())
     if parser_errors :
         return parse_result, True
@@ -347,19 +347,21 @@ def evaluate(parse_result):
     
     def evaluate_expr(expr):
 
-        def grouping(expr):
-            return f"(group {expr})"
-
-        if isinstance(expr, str):
-            return (expr)
+        if isinstance(expr, tuple) and expr[0] == "group":
+            return evaluate_expr(expr[1])
+        
         elif isinstance(expr, float):
             int_value = int(expr)
             if int_value == expr:
                 return int_value
             else:
                 return expr
-        elif isinstance(expr, grouping):
-            return grouping(expr)
+            
+        elif isinstance(expr, bool):
+            return expr
+        
+        elif isinstance(expr, str):
+            return (expr)
             
         else:
             print(f"Unknown expression type: {expr}", file=sys.stderr)
@@ -378,6 +380,12 @@ def evaluate(parse_result):
 
     
 
+#Helper function
+def ast_to_string(node):
+    if isinstance(node, tuple) and node[0] == "group":
+        return f"(group {ast_to_string(node[1])})"
+    else:
+        return str(node)
     
 
 if __name__ == "__main__":
