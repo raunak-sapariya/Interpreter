@@ -337,8 +337,16 @@ def evaluate(parse_result):
     
     def evaluate_expr(expr):
 
-        if isinstance(expr, tuple) and expr[0] == "group":
-            return evaluate_expr(expr[1])
+        if isinstance(expr, tuple):
+            tag = expr[0]
+            if tag == "group":
+                return evaluate_expr(expr[1])
+            
+            elif tag == "literal":
+                return expr[1]
+            else:
+                print(f"Unknown expression tag: {tag}", file=sys.stderr)
+                exit(1)
         
         elif isinstance(expr, float):
             int_value = int(expr)
