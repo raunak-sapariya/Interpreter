@@ -22,16 +22,17 @@ def main():
 
     # Tokenize the file contents
     tokens, lex_errors = tokenize(file_contents)
-    if lex_errors:
-        exit(65)
 
     if command == "tokenize":
         for token in tokens:
-            if token.startswith("[line"):
-                print(token, file=sys.stderr)
-            else:
-                print(token)
-        exit(0)
+             if token.startswith("[line"):
+                 print(token, file=sys.stderr)
+             else:
+                 print(token)
+        if lex_errors:
+             exit(65)
+        else:
+             exit(0)
 
     # Parse the tokens
     ast, parser_errors = parse(tokens)
