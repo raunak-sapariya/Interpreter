@@ -130,6 +130,9 @@ def parse(tokens):
         if token.startswith("FALSE"):
             current += 1
             return False
+        if token.startswith("nil"):
+            current += 1
+            return None
         # Grouping: if token is LEFT_PAREN.
         if token.startswith("LEFT_PAREN"):
             current += 1  # consume '('
