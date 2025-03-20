@@ -335,16 +335,36 @@ def parse(tokens):
 
 
 def evaluate(parse_result):
+
+    def isTruthy(value) -> str:
+        if value == "false" or value == "nil":
+            return "true"
+        return "false"
+
+
     
     def evaluate_expr(expr):
 
         if isinstance(expr, tuple):
             tag = expr[0]
+            
             if tag == "group":
                 return evaluate_expr(expr[1])
             
             elif tag == "literal":
                 return expr[1]
+            
+            elif tag == "unary":
+                right = evaluate_expr(expr[2])
+                print(f"Unary: {expr[1]}")
+                if expr[1] == "-":
+                    return -right
+                elif expr[1] == "!":
+                    return isTruthy(right)
+                else:
+                    print(f"Unknown unary operator: {expr[1]}", file=sys.stderr)
+                    exit(1)
+
             else:
                 print(f"Unknown expression tag: {tag}", file=sys.stderr)
                 exit(1)
