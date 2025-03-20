@@ -347,7 +347,7 @@ def evaluate(parse_result):
 
         if isinstance(expr, tuple):
             tag = expr[0]
-            
+
             if tag == "group":
                 return evaluate_expr(expr[1])
             
@@ -356,7 +356,6 @@ def evaluate(parse_result):
             
             elif tag == "unary":
                 right = evaluate_expr(expr[2])
-                print(f"Unary: {expr[1]}")
                 if expr[1] == "-":
                     return -right
                 elif expr[1] == "!":
