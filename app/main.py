@@ -351,14 +351,14 @@ def evaluate(parse_result):
     
     def checkNumberOperand(operator, operand):
         nonlocal has_error
-        if isinstance(operand, str):
+        if isinstance(operand, bool) or not isinstance(operand, (int, float)):
             has_error = True
             print(f"Error: Operand must be a number, not '{operand}'", file=sys.stderr)
             exit(70)
 
     def checkNumberOperands(operator, left, right):
         nonlocal has_error
-        if isinstance(left, str) or isinstance(right, str):
+        if isinstance(left, bool) or isinstance(right, bool) or not isinstance(left, (int, float)) or not isinstance(right, (int, float)):
             has_error = True
             print(f"Error: Operands must be numbers, not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
