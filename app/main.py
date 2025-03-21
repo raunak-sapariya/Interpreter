@@ -338,9 +338,10 @@ def evaluate(parse_result):
     has_error = False
     
     def isTruthy(value) -> str:
-        if value == "false" or value == "nil":
+        if value is None or value == False:
             return "true"
-        return "false"
+        else:
+            return "false"
     
     def  convertNumber(value):
         if isinstance(value, float):
