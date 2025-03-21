@@ -340,12 +340,18 @@ def evaluate(parse_result):
         if value == "false" or value == "nil":
             return "true"
         return "false"
+    
+    def  convertNumber(value):
+        if isinstance(value, float):
+            int_value = int(value)
+            if int_value == value:
+                return int_value
+            else:
+                return value
 
 
     
     def evaluate_expr(expr):
-
-        # print(expr)
 
         if isinstance(expr, tuple):
             tag = expr[0]
@@ -359,7 +365,8 @@ def evaluate(parse_result):
             elif tag == "unary":
                 right = evaluate_expr(expr[2])
                 if expr[1] == "-":
-                    return -1 * float(right)
+                    result = -1 * right
+                    return convertNumber(result)
                 elif expr[1] == "!":
                     return isTruthy(right)
                 else:
@@ -370,27 +377,24 @@ def evaluate(parse_result):
                 left = evaluate_expr(expr[2])
                 right = evaluate_expr(expr[3])
                 if expr[1] == "*":
-                    return left * right
+                    result = left * right
                 elif expr[1] == "/":
-                    return left / right
+                    result = left / right
                 elif expr[1] == "+":
-                    return left + right
+                    result = left + right
                 elif expr[1] == "-":
-                    return left - right
+                    result = left - right
                 else:
                     print(f"Unknown binary operator: {expr[1]}", file=sys.stderr)
                     exit(1)
+                return convertNumber(result)
 
             else:
                 print(f"Unknown expression tag: {tag}", file=sys.stderr)
                 exit(1)
         
         elif isinstance(expr, float):
-            int_value = int(expr)
-            if int_value == expr:
-                return int_value
-            else:
-                return expr
+            return convertNumber(expr)
             
         elif isinstance(expr, bool):
             return expr
