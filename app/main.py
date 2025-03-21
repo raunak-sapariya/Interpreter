@@ -476,7 +476,11 @@ def ast_to_string(node):
         elif tag == "unary":
             return f"({node[1]} {ast_to_string(node[2])})"
         elif tag == "literal":
-            return str(node[1])
+            value = node[1]
+            if isinstance(value, bool):
+                return "true" if value else "false"
+            elif value is None:
+                return "nil"
         else:
             return str(node)
     else:
