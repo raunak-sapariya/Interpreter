@@ -452,6 +452,8 @@ def evaluate(parse_result):
             result = evaluate_expr(expr)
             if isinstance(result, bool):
                 print("true" if result else "false")
+            elif result is None:
+                print("nil")
             else:
                 print(result)
         else:
