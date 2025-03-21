@@ -364,7 +364,7 @@ def evaluate(parse_result):
             elif tag == "unary":
                 right = evaluate_expr(expr[2])
                 if expr[1] == "-":
-                    result = -1 * right
+                    result = -1 * float(right)
                     return convertNumber(result)
                 elif expr[1] == "!":
                     return isTruthy(right)
@@ -380,9 +380,23 @@ def evaluate(parse_result):
                 elif expr[1] == "/":
                     result = left / right
                 elif expr[1] == "+":
+                    # if isinstance(left, str) and isinstance(right, str):
+                    #     return left + right
                     result = left + right
                 elif expr[1] == "-":
                     result = left - right
+                elif expr[1] == "<":
+                    result = left < right
+                elif expr[1] == "<=":
+                    result = left <= right
+                elif expr[1] == ">":
+                    result = left > right
+                elif expr[1] == ">=":
+                    result = left >= right
+                elif expr[1] == "==":
+                    result = left == right
+                elif expr[1] == "!=":
+                    result = left != right
                 else:
                     print(f"Unknown binary operator: {expr[1]}", file=sys.stderr)
                     exit(1)
