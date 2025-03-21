@@ -337,11 +337,8 @@ def parse(tokens):
 def evaluate(parse_result):
     has_error = False
     
-    def isTruthy(value) -> str:
-        if value is None or value == False:
-            return "true"
-        else:
-            return "false"
+    def isTruthy(value) :
+        return value is not None and value != False
     
     def  convertNumber(value):
         if isinstance(value, float):
@@ -392,7 +389,7 @@ def evaluate(parse_result):
                     result = -1 * float(right)
                     return convertNumber(result)
                 elif expr[1] == "!":
-                    return isTruthy(right)
+                    return not isTruthy(right)
                 else:
                     print(f"Unknown unary operator: {expr[1]}", file=sys.stderr)
                     exit(1)
@@ -453,7 +450,10 @@ def evaluate(parse_result):
     for expr in parse_result:
         if expr is not None:
             result = evaluate_expr(expr)
-            print(result)
+            if isinstance(result, bool):
+                print("true" if result else "false")
+            else:
+                print(result)
         else:
             print("Error: Unable to evaluate expression.", file=sys.stderr)
             exit(1)
