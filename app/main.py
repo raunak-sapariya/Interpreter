@@ -354,7 +354,15 @@ def evaluate(parse_result):
         if isinstance(operand, str):
             has_error = True
             print(f"Error: Operand must be a number, not '{operand}'", file=sys.stderr)
-            exit(70) 
+            exit(70)
+
+    def checkNumberOperands(operator, left, right):
+        nonlocal has_error
+        if isinstance(left, str) or isinstance(right, str):
+            has_error = True
+            print(f"Error: Operands must be numbers, not '{left}' and '{right}'", file=sys.stderr)
+            exit(70)
+     
     
     def evaluate_expr(expr):
 
@@ -383,26 +391,36 @@ def evaluate(parse_result):
                 left = evaluate_expr(expr[2])
                 right = evaluate_expr(expr[3])
                 if expr[1] == "*":
+                    checkNumberOperands(expr[1], left, right)
                     result = left * right
                 elif expr[1] == "/":
+                    checkNumberOperands(expr[1], left, right)
                     result = left / right
                 elif expr[1] == "+":
                     # if isinstance(left, str) and isinstance(right, str):
                     #     return left + right
+                    checkNumberOperands(expr[1], left, right)
                     result = left + right
                 elif expr[1] == "-":
+                    checkNumberOperands(expr[1], left, right)
                     result = left - right
                 elif expr[1] == "<":
+                    checkNumberOperands(expr[1], left, right)
                     result = "true" if left < right else "false"
                 elif expr[1] == "<=":
+                    checkNumberOperands(expr[1], left, right)
                     result = "true" if left <= right else "false"
                 elif expr[1] == ">":
+                    checkNumberOperands(expr[1], left, right)
                     result = "true" if left > right else "false"
                 elif expr[1] == ">=":
+                    checkNumberOperands(expr[1], left, right)
                     result = "true" if left >= right else "false"
                 elif expr[1] == "==":
+                    checkNumberOperands(expr[1], left, right)
                     result = "true" if left == right else "false"
                 elif expr[1] == "!=":
+                    checkNumberOperands(expr[1], left, right)
                     result = "true" if left != right else "false"
                 else:
                     print(f"Unknown binary operator: {expr[1]}", file=sys.stderr)
