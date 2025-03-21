@@ -354,7 +354,7 @@ def evaluate(parse_result):
         if isinstance(operand, str):
             has_error = True
             print(f"Error: Operand must be a number, not '{operand}'", file=sys.stderr)
-            exit(1) 
+            exit(70) 
     
     def evaluate_expr(expr):
 
