@@ -417,10 +417,8 @@ def evaluate(parse_result):
                     checkNumberOperands(expr[1], left, right)
                     result = "true" if left >= right else "false"
                 elif expr[1] == "==":
-                    checkNumberOperands(expr[1], left, right)
                     result = "true" if left == right else "false"
                 elif expr[1] == "!=":
-                    checkNumberOperands(expr[1], left, right)
                     result = "true" if left != right else "false"
                 else:
                     print(f"Unknown binary operator: {expr[1]}", file=sys.stderr)
