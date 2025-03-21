@@ -369,14 +369,14 @@ def evaluate(parse_result):
             elif tag == "binary":
                 left = evaluate_expr(expr[2])
                 right = evaluate_expr(expr[3])
-                if expr[1] == "+":
-                    return left + right
-                elif expr[1] == "-":
-                    return left - right
-                elif expr[1] == "*":
+                if expr[1] == "*":
                     return left * right
                 elif expr[1] == "/":
                     return left / right
+                elif expr[1] == "+":
+                    return left + right
+                elif expr[1] == "-":
+                    return left - right
                 else:
                     print(f"Unknown binary operator: {expr[1]}", file=sys.stderr)
                     exit(1)
