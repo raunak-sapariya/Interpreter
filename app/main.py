@@ -346,8 +346,7 @@ def evaluate(parse_result):
             int_value = int(value)
             if int_value == value:
                 return int_value
-            else:
-                return value
+        return value
 
 
     
