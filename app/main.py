@@ -291,11 +291,11 @@ def parse(tokens):
     def primary():
         try:
             if match("FALSE"):
-                return Literal("false")
+                return Literal(False)
             if match("TRUE"):
-                return Literal("true")
+                return Literal(True)
             if match("NIL"):
-                return Literal("nil")
+                return Literal(None)
             if match("NUMBER"):
                 return float(previous().split()[2])
             if match("STRING"):
