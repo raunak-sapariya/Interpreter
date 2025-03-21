@@ -362,6 +362,15 @@ def evaluate(parse_result):
             has_error = True
             print(f"Error: Operands must be numbers, not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
+
+    def checkAdditionOperands(operator, left, right):
+        nonlocal has_error
+        if (isinstance(left, str) and not isinstance(right, str)) or (not isinstance(left, str) and isinstance(right, str)):
+            has_error = True
+            print(f"Error: Operands must be two numbers or two strings for '+', not '{left}' and '{right}'", file=sys.stderr)
+            exit(70)
+
+
      
     
     def evaluate_expr(expr):
@@ -397,9 +406,7 @@ def evaluate(parse_result):
                     checkNumberOperands(expr[1], left, right)
                     result = left / right
                 elif expr[1] == "+":
-                    # if isinstance(left, str) and isinstance(right, str):
-                    #     return left + right
-                    checkNumberOperands(expr[1], left, right)
+                    checkAdditionOperands(expr[1], left, right)
                     result = left + right
                 elif expr[1] == "-":
                     checkNumberOperands(expr[1], left, right)
