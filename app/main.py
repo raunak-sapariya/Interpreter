@@ -335,7 +335,8 @@ def parse(tokens):
 
 
 def evaluate(parse_result):
-
+    has_error = False
+    
     def isTruthy(value) -> str:
         if value == "false" or value == "nil":
             return "true"
@@ -347,8 +348,13 @@ def evaluate(parse_result):
             if int_value == value:
                 return int_value
         return value
-
-
+    
+    def checkNumberOperand(operator, operand):
+        nonlocal has_error
+        if isinstance(operand, str):
+            has_error = True
+            print(f"Error: Operand must be a number, not '{operand}'", file=sys.stderr)
+            exit(1) 
     
     def evaluate_expr(expr):
 
@@ -364,6 +370,7 @@ def evaluate(parse_result):
             elif tag == "unary":
                 right = evaluate_expr(expr[2])
                 if expr[1] == "-":
+                    checkNumberOperand(expr[1], right)
                     result = -1 * float(right)
                     return convertNumber(result)
                 elif expr[1] == "!":
