@@ -21,7 +21,7 @@ def main():
 
 
     # Tokenize the file contents
-    tokens, lex_errors = tokenize(file_contents)
+    tokens, lex_errors, line_number = tokenize(file_contents)
 
     if command == "tokenize":
         for token in tokens:
@@ -47,7 +47,7 @@ def main():
 
     # Evaluate the AST
     elif command == "evaluate":
-        result = evaluate(ast)
+        result = evaluate(ast, line_number)
         if result is not None:
             print(result)
         exit(0)
@@ -188,7 +188,7 @@ def tokenize(file_contents):
 
         tokens.append("EOF  null")
         
-        return tokens, lexical_errors
+        return tokens, lexical_errors, line_number
 
 
 def parse(tokens):
@@ -334,7 +334,7 @@ def parse(tokens):
     
 
 
-def evaluate(parse_result):
+def evaluate(parse_result, line_number):
     has_error = False
     
     def isTruthy(value) :
@@ -351,21 +351,21 @@ def evaluate(parse_result):
         nonlocal has_error
         if isinstance(operand, bool) or not isinstance(operand, (int, float)):
             has_error = True
-            print(f"Error: Operand must be a number, not '{operand}'", file=sys.stderr)
+            print(f"[Line {line_number}] Error: Operand must be a number, not '{operand}'", file=sys.stderr)
             exit(70)
 
     def checkNumberOperands(operator, left, right):
         nonlocal has_error
         if isinstance(left, bool) or isinstance(right, bool) or not isinstance(left, (int, float)) or not isinstance(right, (int, float)):
             has_error = True
-            print(f"Error: Operands must be numbers, not '{left}' and '{right}'", file=sys.stderr)
+            print(f"[Line {line_number}] Error: Operands must be numbers, not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
 
     def checkAdditionOperands(operator, left, right):
         nonlocal has_error
         if (isinstance(left, str) and not isinstance(right, str)) or (not isinstance(left, str) and isinstance(right, str)):
             has_error = True
-            print(f"Error: Operands must be two numbers or two strings for '+', not '{left}' and '{right}'", file=sys.stderr)
+            print(f"[Line {line_number}] Error: Operands must be two numbers or two strings for '+', not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
 
 
