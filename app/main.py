@@ -52,6 +52,10 @@ def main():
             print(result)
         exit(0)
 
+    elif command == "run":
+        run(ast, line_number)
+        exit(0)
+
     print(f"Unknown command: {command}", file=sys.stderr)
     exit(1)
  
@@ -196,6 +200,9 @@ def parse(tokens):
     parse_result=[]
     parser_errors=False
 
+    stmts=[]
+
+    
     # Grammar Rules
     def expression():
         expr=equality()
@@ -313,28 +320,31 @@ def parse(tokens):
         except Exception as e:
             print(f"Error in primary: {e}", file=sys.stderr)
             return None
-    
-    # AST Node 
-    def Binary(left,operator,right):
-        return ("binary", operator, left, right)
+        
+    def statement():
+        # printStmt → "print" expression ";" ;
+        if match("PRINT"):
+            expr=expression()
+            consume("SEMICOLON","Expected ';' after expression.")
+            return ("print",expr)
+        else:
+            # exprStmt → expression ";" ;
+            expr=expression()
+            consume("SEMICOLON","Expected ';' after expression.")
+            return ("expression",expr)
+        
+    while not isAtEnd():
+        stmt=statement()
+        if stmt is None:
+            parser_errors=True
+            print("Error: Unable to parse statement.", file=sys.stderr)
+            exit(1)
+        stmts.append(stmt)
+    return stmts, parser_errors
 
-    def Unary(operator,right):
-        return ("unary", operator, right)
-
-    def Literal(value):
-        return ("literal", value)
-
-    def grouping(expr):
-        return ("group", expr)
-    
-    parse_result.append(expression())
-    if parser_errors :
-        return parse_result, True
-    return parse_result, False
-    
 
 
-def evaluate(parse_result, line_number):
+def evaluate_expr(expr, line_number):
     has_error = False
     
     def isTruthy(value) :
@@ -368,88 +378,84 @@ def evaluate(parse_result, line_number):
             print(f"[Line {line_number}] Error: Operands must be two numbers or two strings for '+', not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
 
+    if isinstance(expr, tuple):
+        tag = expr[0]
 
-     
-    
-    def evaluate_expr(expr):
-
-        if isinstance(expr, tuple):
-            tag = expr[0]
-
-            if tag == "group":
-                return evaluate_expr(expr[1])
+        if tag == "group":
+            return evaluate_expr(expr[1], line_number)
             
-            elif tag == "literal":
-                return expr[1]
+        elif tag == "literal":
+            return expr[1]
             
-            elif tag == "unary":
-                right = evaluate_expr(expr[2])
-                if expr[1] == "-":
-                    checkNumberOperand(expr[1], right)
-                    result = -1 * float(right)
-                    return convertNumber(result)
-                elif expr[1] == "!":
-                    return not isTruthy(right)
-                else:
-                    print(f"Unknown unary operator: {expr[1]}", file=sys.stderr)
-                    exit(1)
-
-            elif tag == "binary":
-                left = evaluate_expr(expr[2])
-                right = evaluate_expr(expr[3])
-                if expr[1] == "*":
-                    checkNumberOperands(expr[1], left, right)
-                    result = left * right
-                elif expr[1] == "/":
-                    checkNumberOperands(expr[1], left, right)
-                    result = left / right
-                elif expr[1] == "+":
-                    checkAdditionOperands(expr[1], left, right)
-                    result = left + right
-                elif expr[1] == "-":
-                    checkNumberOperands(expr[1], left, right)
-                    result = left - right
-                elif expr[1] == "<":
-                    checkNumberOperands(expr[1], left, right)
-                    result = "true" if left < right else "false"
-                elif expr[1] == "<=":
-                    checkNumberOperands(expr[1], left, right)
-                    result = "true" if left <= right else "false"
-                elif expr[1] == ">":
-                    checkNumberOperands(expr[1], left, right)
-                    result = "true" if left > right else "false"
-                elif expr[1] == ">=":
-                    checkNumberOperands(expr[1], left, right)
-                    result = "true" if left >= right else "false"
-                elif expr[1] == "==":
-                    result = "true" if left == right else "false"
-                elif expr[1] == "!=":
-                    result = "true" if left != right else "false"
-                else:
-                    print(f"Unknown binary operator: {expr[1]}", file=sys.stderr)
-                    exit(1)
+        elif tag == "unary":
+            right = evaluate_expr(expr[2], line_number)
+            if expr[1] == "-":
+                checkNumberOperand(expr[1], right)
+                result = -1 * float(right)
                 return convertNumber(result)
-
+            elif expr[1] == "!":
+                return not isTruthy(right)
             else:
-                print(f"Unknown expression tag: {tag}", file=sys.stderr)
+                print(f"Unknown unary operator: {expr[1]}", file=sys.stderr)
                 exit(1)
-        
-        elif isinstance(expr, float):
-            return convertNumber(expr)
-            
-        elif isinstance(expr, bool):
-            return expr
-        
-        elif isinstance(expr, str):
-            return (expr)
-            
-        else:
-            print(f"Unknown expression type: {expr}", file=sys.stderr)
-            exit(1)
 
+        elif tag == "binary":
+            left = evaluate_expr(expr[2], line_number)
+            right = evaluate_expr(expr[3], line_number)
+            if expr[1] == "*":
+                checkNumberOperands(expr[1], left, right)
+                result = left * right
+            elif expr[1] == "/":
+                checkNumberOperands(expr[1], left, right)
+                result = left / right
+            elif expr[1] == "+":
+                checkAdditionOperands(expr[1], left, right)
+                result = left + right
+            elif expr[1] == "-":
+                checkNumberOperands(expr[1], left, right)
+                result = left - right
+            elif expr[1] == "<":
+                checkNumberOperands(expr[1], left, right)
+                result = "true" if left < right else "false"
+            elif expr[1] == "<=":
+                checkNumberOperands(expr[1], left, right)
+                result = "true" if left <= right else "false"
+            elif expr[1] == ">":
+                checkNumberOperands(expr[1], left, right)
+                result = "true" if left > right else "false"
+            elif expr[1] == ">=":
+                checkNumberOperands(expr[1], left, right)
+                result = "true" if left >= right else "false"
+            elif expr[1] == "==":
+                result = "true" if left == right else "false"
+            elif expr[1] == "!=":
+                result = "true" if left != right else "false"
+            else:
+                print(f"Unknown binary operator: {expr[1]}", file=sys.stderr)
+                exit(1)
+            return convertNumber(result)
+
+        else:
+            print(f"Unknown expression tag: {tag}", file=sys.stderr)
+            exit(1)
+        
+    elif isinstance(expr, float):
+        return convertNumber(expr)
+            
+    elif isinstance(expr, bool):
+        return expr
+        
+    elif isinstance(expr, str):
+        return expr
+            
+    else:
+        print(f"Unknown expression type: {expr}", file=sys.stderr)
+        exit(1)
+
+def evaluate(parse_result, line_number):
     for expr in parse_result:
         if expr is not None:
-            result = evaluate_expr(expr)
+            result = evaluate_expr(expr, line_number)
             if isinstance(result, bool):
                 print("true" if result else "false")
             elif result is None:
@@ -463,7 +469,43 @@ def evaluate(parse_result, line_number):
     exit(0)
 
 
+def run(statements, line_number):
+    for statement in statements:
+        if statement[0] == "print":
+                print (stringify(evaluate_expr(statement[1], line_number)))
+        elif statement[0] == "expression":
+            evaluate_expr(stringify(statement[1], line_number))
+        else:
+            print(f"Unknown statement type: {statement[0]}", file=sys.stderr)
+            exit(1)
+
+# AST Node constructors
+def Binary(left,operator,right):
+    return ("binary", operator, left, right)
+
+def Unary(operator,right):
+    return ("unary", operator, right)
+
+def Literal(value):
+    return ("literal", value)
+
+def grouping(expr):
+    return ("group", expr)
     
+
+# Helper function to convert values to strings
+def stringify(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    elif value is None:
+        return "nil"
+    elif isinstance(value, float):
+        return str(int(value)) if int(value) == value else str(value)
+    elif isinstance(value, str):
+        return value
+    else:
+        return str(value)
+
 
 # Helper function
 def ast_to_string(node):
