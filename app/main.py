@@ -197,7 +197,6 @@ def tokenize(file_contents):
 
 def parse(tokens):
     current=0
-    parse_result=[]
     parser_errors=False
 
     stmts=[]
@@ -358,26 +357,26 @@ def evaluate_expr(expr, line_number):
         return value
     
     def checkNumberOperand(operator, operand):
+    def checkNumberOperand(_, operand):
         nonlocal has_error
         if isinstance(operand, bool) or not isinstance(operand, (int, float)):
             has_error = True
             print(f"[Line {line_number}] Error: Operand must be a number, not '{operand}'", file=sys.stderr)
             exit(70)
 
-    def checkNumberOperands(operator, left, right):
+    def checkNumberOperands(_, left, right):
         nonlocal has_error
         if isinstance(left, bool) or isinstance(right, bool) or not isinstance(left, (int, float)) or not isinstance(right, (int, float)):
             has_error = True
             print(f"[Line {line_number}] Error: Operands must be numbers, not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
 
-    def checkAdditionOperands(operator, left, right):
+    def checkAdditionOperands(_, left, right):
         nonlocal has_error
         if (isinstance(left, str) and not isinstance(right, str)) or (not isinstance(left, str) and isinstance(right, str)):
             has_error = True
             print(f"[Line {line_number}] Error: Operands must be two numbers or two strings for '+', not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
-
     if isinstance(expr, tuple):
         tag = expr[0]
 
@@ -455,7 +454,7 @@ def evaluate_expr(expr, line_number):
 def evaluate(parse_result, line_number):
     for expr in parse_result:
         if expr is not None:
-            result = evaluate_expr(expr, line_number)
+            result = evaluate_expr(expr[1], line_number)
             if isinstance(result, bool):
                 print("true" if result else "false")
             elif result is None:
@@ -472,9 +471,9 @@ def evaluate(parse_result, line_number):
 def run(statements, line_number):
     for statement in statements:
         if statement[0] == "print":
-                print (stringify(evaluate_expr(statement[1], line_number)))
+            print(stringify(evaluate_expr(statement[1], line_number)))
         elif statement[0] == "expression":
-            evaluate_expr(stringify(statement[1], line_number))
+            evaluate_expr(statement[1], line_number)
         else:
             print(f"Unknown statement type: {statement[0]}", file=sys.stderr)
             exit(1)
