@@ -356,7 +356,6 @@ def evaluate_expr(expr, line_number):
                 return int_value
         return value
     
-    def checkNumberOperand(operator, operand):
     def checkNumberOperand(_, operand):
         nonlocal has_error
         if isinstance(operand, bool) or not isinstance(operand, (int, float)):
@@ -377,6 +376,7 @@ def evaluate_expr(expr, line_number):
             has_error = True
             print(f"[Line {line_number}] Error: Operands must be two numbers or two strings for '+', not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
+            
     if isinstance(expr, tuple):
         tag = expr[0]
 
