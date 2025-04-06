@@ -29,7 +29,7 @@ def main():
         exit(65 if lex_errors else 0)
 
     # Parse the tokens.
-    ast, parser_errors = parse(tokens)
+    ast, parser_errors = parse(tokens, line_number)
     if parser_errors:
         exit(65)
 
@@ -187,7 +187,7 @@ def tokenize(file_contents):
     return tokens, lexical_errors, line_number
 
 
-def parse(tokens):
+def parse(tokens, global_line_number):
     """
     Parses the list of tokens into an abstract syntax tree (AST).
     Returns a tuple: (statements, parser_errors)
@@ -195,6 +195,10 @@ def parse(tokens):
     current = 0
     parser_errors = False
     statements = []
+
+    def error(token, message):
+        print(f"Error at: [line {global_line_number}]  '{token}': {message}", file=sys.stderr)
+        exit(65)
 
     def expression():
         expr=equality()
@@ -310,24 +314,12 @@ def parse(tokens):
     def previous():
         return tokens[current - 1]
 
-    def error(token, message):
-        nonlocal parser_errors
-        parser_errors = True
-        if token.startswith("EOF"):
-            report(token, " at end", message)
-        else:
-            report(token, f" at '{token.split()[1]}'", message)
-        return None
-
-    def report(token, where, message):
-        print(f"[line {token.split()[1]}] Error{where}: {message}", file=sys.stderr)
-
     while not isAtEnd():
         stmt = statement()
         if stmt is None:
             parser_errors = True
             print("Error: Unable to parse statement.", file=sys.stderr)
-            exit(1)
+            exit(65)
         statements.append(stmt)
     return statements, parser_errors
 
@@ -505,7 +497,6 @@ def stringify(value):
         return str(value)
 
 
-# Helper function
 def ast_to_string(node):
     """Returns a string representation of the AST node."""
     if isinstance(node, tuple):
@@ -527,8 +518,6 @@ def ast_to_string(node):
     else:
         return str(node)
         
-
-    
 
 if __name__ == "__main__":
     main()
