@@ -349,18 +349,18 @@ def evaluate_expr(expr, line_number):
 
     def checkNumberOperand(operator, operand):
         if isinstance(operand, bool) or not isinstance(operand, (int, float)):
-            print(f"[Line {line_number}] Error: Operand must be a number, not '{operand}'", file=sys.stderr)
+            print(f"[Line {line_number}] Error: Operand for '{operator}' must be a number, not '{operand}'", file=sys.stderr)
             exit(70)
 
     def checkNumberOperands(operator, left, right):
         if (isinstance(left, bool) or isinstance(right, bool) or
             not isinstance(left, (int, float)) or not isinstance(right, (int, float))):
-            print(f"[Line {line_number}] Error: Operands must be numbers, not '{left}' and '{right}'", file=sys.stderr)
+            print(f"[Line {line_number}] Error: Operands for '{operator}' must be numbers, not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
 
     def checkAdditionOperands(operator, left, right):
         if (isinstance(left, str) and not isinstance(right, str)) or (not isinstance(left, str) and isinstance(right, str)):
-            print(f"[Line {line_number}] Error: Operands for '+' must be both numbers or both strings, not '{left}' and '{right}'", file=sys.stderr)
+            print(f"[Line {line_number}] Error: Operands for '{operator}' must be both numbers or both strings, not '{left}' and '{right}'", file=sys.stderr)
             exit(70)
 
     if isinstance(expr, tuple):
@@ -398,6 +398,7 @@ def evaluate_expr(expr, line_number):
             elif expr[1] == "-":
                 checkNumberOperands(expr[1], left, right)
                 result = left - right
+                return convertNumber(result)
             elif expr[1] == "<":
                 checkNumberOperands(expr[1], left, right)
                 return left < right
