@@ -503,6 +503,8 @@ def ast_to_string(node):
         tag = node[0]
         if tag == "group":
             return f"(group {ast_to_string(node[1])})"
+        elif tag == "expression":
+            return ast_to_string(node[1])
         elif tag == "binary":
             return f"({node[1]} {ast_to_string(node[2])} {ast_to_string(node[3])})"
         elif tag == "unary":
