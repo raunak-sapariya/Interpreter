@@ -200,6 +200,19 @@ def parse(tokens, global_line_number):
         print(f"Error at: [line {global_line_number}]  '{token}': {message}", file=sys.stderr)
         exit(65)
 
+    def synchronize():
+        nonlocal current
+        while not isAtEnd():
+            if previous().startswith("SEMICOLON"):
+                return
+            match = peek()
+            if (match.startswith("CLASS") or match.startswith("FUN") or 
+                match.startswith("VAR") or match.startswith("FOR") or 
+                match.startswith("IF") or match.startswith("WHILE") or 
+                match.startswith("PRINT")):
+                return
+            advance()
+
     def expression():
         expr=equality()
         return expr
@@ -255,6 +268,8 @@ def parse(tokens, global_line_number):
                 return float(previous().split()[2])
             if match("STRING"):
                 return previous().split('"', 2)[1]
+            if match("IDENTIFIER"):
+                return ("variable", previous())
             if match("LEFT_PAREN"):
                 expr = expression()
                 if consume("RIGHT_PAREN", "Expected ')' after expression.") is None:
@@ -279,6 +294,24 @@ def parse(tokens, global_line_number):
             if not isAtEnd():
                 consume("SEMICOLON", "Expected ';' after expression.")
             return ("expression", expr)
+        
+    def declaration():
+        try:
+            if match("VAR"):
+                return vardeclaration()
+            return statement()
+        except Exception as e:
+            synchronize()
+            return None
+
+    def vardeclaration():
+        name = consume("IDENTIFIER", "Expected variable name.")
+        if match("EQUAL"):
+            initializer = expression()
+        else:
+            initializer = None
+        consume("SEMICOLON", "Expected ';' after variable declaration.")
+        return ("var", name, initializer)
 
     def match(*types) -> bool:
         nonlocal current
@@ -315,12 +348,9 @@ def parse(tokens, global_line_number):
         return tokens[current - 1]
 
     while not isAtEnd():
-        stmt = statement()
-        if stmt is None:
-            parser_errors = True
-            print("Error: Unable to parse statement.", file=sys.stderr)
-            exit(65)
-        statements.append(stmt)
+        decl = declaration()
+        if decl is not None:
+            statements.append(decl)
     return statements, parser_errors
 
 
@@ -410,6 +440,10 @@ def evaluate_expr(expr, line_number):
             else:
                 print(f"Unknown binary operator: {expr[1]}", file=sys.stderr)
                 exit(1)
+
+        elif tag == "variable":
+            name = expr[1].split()[1]
+            return global_environment.get(name)
         else:
             print(f"Unknown expression tag: {tag}", file=sys.stderr)
             exit(1)
@@ -442,9 +476,17 @@ def evaluate(statements, line_number):
                 print("nil")
             else:
                 print(result)
+
         elif stmt[0] == "print":
             result = evaluate_expr(stmt[1], line_number)
             print(stringify(result))
+
+        elif stmt[0] == "var":
+            name = stmt[1].split()[1]
+            initializer = stmt[2]
+            value = evaluate_expr(initializer, line_number) if initializer is not None else None
+            global_environment.define(name, value)
+
         else:
             print(f"Unknown statement type: {stmt[0]}", file=sys.stderr)
             exit(1)
@@ -463,10 +505,38 @@ def run(statements, line_number):
             print(stringify(result))
         elif stmt[0] == "expression":
             evaluate_expr(stmt[1], line_number)
+        elif stmt[0] == "var":
+            name = stmt[1].split()[1]
+            initializer = stmt[2]
+            value = evaluate_expr(initializer, line_number) if initializer is not None else None
+            global_environment.define(name, value)            
         else:
             print(f"Unknown statement type: {stmt[0]}", file=sys.stderr)
             exit(1)
 
+
+# Environment class to manage variable scopes and values.
+class Environment:
+    def __init__(self):
+        self.values = {}
+
+    def define(self, name, value):
+        self.values[name] = value
+
+    def get(self, name):
+        if name in self.values:
+            return self.values[name]
+        print(f"RuntimeError(Undefined variable '{name}').",file=sys.stderr)
+        exit(70)
+
+    def assign(self, name, value):
+        if name in self.values:
+            self.values[name] = value
+            return
+        print(f"RuntimeError(Undefined variable '{name}').",file=sys.stderr)
+        
+    
+global_environment = Environment()
 
 # AST Node constructors.
 def Binary(left, operator, right):
@@ -515,10 +585,11 @@ def ast_to_string(node):
                 return "true" if value else "false"
             elif value is None:
                 return "nil"
-        else:
-            return str(node)
-    else:
-        return str(node)
+        elif tag == "variable":
+            return f"<variable {node[1]}>"
+        elif tag == "var":
+            return f"(var {node[1]} = {ast_to_string(node[2]) if node[2] is not None else 'nil'})"
+    return str(node)
         
 
 if __name__ == "__main__":
